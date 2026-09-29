@@ -1,0 +1,2651 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>NEXUS: GALAXY STRIKE 5.5</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#02030b;color:#fff;font-family:Arial,sans-serif}
+canvas{display:block;width:100%;height:100%;background:#02030b}
+.screen{
+position:absolute;
+inset:0;
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+background:
+radial-gradient(circle at 15% 20%,#08eaff18 0 2px,transparent 3px),
+radial-gradient(circle at 75% 15%,#ffffff20 0 1px,transparent 2px),
+radial-gradient(circle at 35% 75%,#08eaff15 0 2px,transparent 3px),
+radial-gradient(circle at 90% 80%,#ffffff18 0 1px,transparent 2px),
+linear-gradient(135deg,#02030b,#061426,#02030b);
+background-size:180px 180px,230px 230px,260px 260px,210px 210px,100% 100%;
+animation:menuSpace 16s linear infinite;
+z-index:5;
+padding:20px;
+}
+
+@keyframes menuSpace{
+0%{background-position:0 0,0 0,0 0,0 0,0 0}
+50%{background-position:-30px 20px,25px -15px,-20px 25px,30px -20px,0 0}
+100%{background-position:0 0,0 0,0 0,0 0,0 0}
+}
+.hidden{display:none!important}
+body::before{
+content:"";
+position:fixed;
+inset:-20%;
+z-index:-1;
+pointer-events:none;
+background:
+radial-gradient(circle at 20% 30%,#08eaff22 0 1px,transparent 2px),
+radial-gradient(circle at 70% 20%,#ffffff22 0 1px,transparent 2px),
+radial-gradient(circle at 40% 80%,#08eaff18 0 1px,transparent 2px),
+radial-gradient(circle at 85% 70%,#ffffff20 0 1px,transparent 2px),
+radial-gradient(circle at 10% 90%,#08eaff18 0 1px,transparent 2px);
+background-size:180px 180px,230px 230px,260px 260px,210px 210px,300px 300px;
+animation:spaceDrift 18s linear infinite;
+}
+
+@keyframes spaceDrift{
+from{transform:translate(0,0) scale(1)}
+50%{transform:translate(-25px,18px) scale(1.03)}
+to{transform:translate(0,0) scale(1)}
+}
+
+h1{
+font-size:48px;
+color:#08eaff;
+letter-spacing:3px;
+text-shadow:
+0 0 6px #08eaff,
+0 0 18px #08eaff,
+0 0 38px #08eaff66;
+margin:0 0 8px;
+text-align:center;
+animation:nexusGlow 2.8s ease-in-out infinite;
+}
+
+@keyframes nexusGlow{
+0%,100%{text-shadow:0 0 6px #08eaff,0 0 18px #08eaff,0 0 38px #08eaff55}
+50%{text-shadow:0 0 10px #08eaff,0 0 28px #08eaff,0 0 55px #08eaff88}
+}
+
+.sub{
+font-size:15px;
+color:#8edff0;
+letter-spacing:2px;
+margin-bottom:28px;
+text-transform:uppercase;
+text-shadow:0 0 8px #08eaff55;
+}
+.sub{font-size:18px;color:#aaa;margin-bottom:28px}
+.btn{width:min(380px,82vw);padding:11px 16px;margin:5px;border:1px solid #08eaff;border-radius:10px;background:linear-gradient(180deg,#0b2744,#061426);color:#fff;font-size:16px;font-weight:600;letter-spacing:.5px;box-shadow:0 4px 12px #0008, inset 0 1px 0 #ffffff18;transition:all .15s ease;cursor:pointer}
+.btn:active{transform:scale(.96);background:linear-gradient(180deg,#123c61,#082039);box-shadow:0 2px 6px #0008,0 0 12px #08eaff55}
+.panel{width:min(550px,92vw);background:#071326eF;border:1px solid #087da0;border-radius:20px;padding:20px;text-align:center}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.shop-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;max-height:52vh;overflow-y:auto;padding:2px}
+.shop-card{padding:8px 5px;background:#081b31;border:1px solid #12627d;border-radius:10px;font-size:13px;text-align:center}
+.shop-btn{width:82%;padding:6px 8px;margin:3px auto;font-size:12px;border-radius:8px;display:block}
+.shop-back{width:82%;padding:8px;margin:8px auto 0;font-size:13px;border-radius:9px;display:block}
+.card{padding:15px;background:#081b31;border:1px solid #12627d;border-radius:14px}
+.small{font-size:14px;color:#aaa}
+#hud{
+position:absolute;
+bottom:7px;
+left:7px;
+right:7px;
+top:auto;
+z-index:3;
+display:flex;
+gap:5px;
+align-items:center;
+justify-content:center;
+font-size:10px;
+pointer-events:none;
+filter:drop-shadow(0 3px 8px #0009);
+}
+
+.badge{
+position:relative;
+min-width:58px;
+padding:6px 7px 5px;
+background:linear-gradient(180deg,#0b2239eF,#04101eeF);
+border:1px solid #087f92;
+border-radius:9px;
+white-space:nowrap;
+text-align:center;
+color:#dffcff;
+box-shadow:
+0 0 7px #08eaff22,
+inset 0 1px 0 #ffffff18;
+text-shadow:0 0 7px #08eaff66;
+}
+
+.badge:first-child{
+border-color:#08eaff;
+box-shadow:
+0 0 8px #08eaff33,
+inset 0 1px 0 #ffffff18;
+}
+
+.badge span{
+font-weight:700;
+font-size:11px;
+color:#fff;
+}
+
+#pause{
+pointer-events:auto;
+width:43px;
+height:36px;
+padding:0;
+margin:0;
+font-size:16px;
+border-radius:9px;
+border-color:#08eaff;
+background:linear-gradient(180deg,#0b2744,#061426);
+box-shadow:
+0 0 9px #08eaff33,
+inset 0 1px 0 #ffffff18;
+}
+
+#pause:active{
+transform:scale(.94);
+box-shadow:0 0 14px #08eaff77;
+}
+
+@media(max-width:430px){
+#hud{
+gap:3px;
+left:4px;
+right:4px;
+bottom:5px;
+}
+
+.badge{
+min-width:0;
+padding:5px 5px;
+font-size:9px;
+}
+
+.badge span{
+font-size:10px;
+}
+
+#pause{
+width:39px;
+height:34px;
+font-size:15px;
+}
+}
+
+#toast{
+position:absolute;
+bottom:92px;
+left:50%;
+transform:translateX(-50%);
+z-index:8;
+background:#061426ee;
+border:1px solid #08eaff;
+border-radius:9px;
+padding:6px 11px;
+display:none;
+text-align:center;
+font-size:12px;
+font-weight:600;
+color:#eaffff;
+white-space:nowrap;
+box-shadow:0 0 10px #08eaff33,0 3px 8px #0009;
+pointer-events:none;
+}
+#power{
+position:absolute;
+bottom:50px;
+left:50%;
+transform:translateX(-50%);
+z-index:3;
+color:#dffcff;
+font-size:11px;
+font-weight:600;
+text-align:center;
+white-space:nowrap;
+text-shadow:0 0 7px #08eaff;
+pointer-events:none;
+background:#061426aa;
+border:1px solid #087f9255;
+border-radius:7px;
+padding:3px 8px;
+}
+</style>
+</head>
+<body>
+
+<canvas id="game"></canvas>
+
+<div id="menu" class="screen">
+<h1>NEXUS: GALAXY STRIKE</h1>
+<div class="sub">VERSÃO 5.5 • GALAXY ADVENTURE</div>
+<button class="btn" id="continueBtn" onclick="continueGame()">▶️ CONTINUAR</button>
+<button class="btn" onclick="startGame()">🚀 NOVO JOGO</button>
+<button class="btn" onclick="showWorlds()">🌌 MUNDOS</button>
+<button class="btn" onclick="showShop()">🛒 LOJA</button>
+<button class="btn" onclick="showMissions()">🎯 MISSÕES</button>
+<button class="btn" onclick="showAchievements()">🏆 CONQUISTAS</button>
+<div style="margin-top:12px">💰 Moedas: <b id="menuCoins">0</b>　•　🏆 Recorde: <b id="menuHigh">0</b></div>
+</div>
+
+<div id="hud" class="hidden">
+<div class="badge">🌌 <span id="world">1</span>-<span id="level">1</span></div>
+<div class="badge">⭐ <span id="score">0</span></div>
+<div class="badge">💰 <span id="coins">0</span></div>
+<div class="badge">❤️ <span id="lives">3</span></div>
+<div class="badge" style="min-width:130px">
+🛡️ <span id="integridadeTexto">100%</span>
+<div style="height:7px;background:#222;border-radius:6px;margin-top:4px;overflow:hidden">
+<div id="integridadeBarra" style="height:100%;width:100%;background:#2ecc71;border-radius:6px;transition:width .15s"></div>
+</div>
+</div>
+<button class="btn" id="pause" onclick="togglePause()">Ⅱ</button>
+</div>
+
+<div id="power"></div>
+<div id="toast"></div>
+
+<div id="gameover" class="screen hidden">
+<h1>💥 FIM DE JOGO</h1>
+<div class="panel">
+<div style="font-size:21px">⭐ Pontuação: <b id="finalScore">0</b></div>
+<div style="font-size:21px">🏆 Recorde: <b id="finalHigh">0</b></div>
+<div style="font-size:21px">💰 Moedas ganhas: <b id="finalCoins">0</b></div>
+</div>
+<button class="btn" onclick="startGame()">🔄 JOGAR NOVAMENTE</button>
+<button class="btn" onclick="backMenu()">MENU</button>
+</div>
+
+<div id="pauseScreen" class="screen hidden">
+<h1>⏸️ PAUSADO</h1>
+<button class="btn" onclick="togglePause()">▶️ CONTINUAR</button>
+<button class="btn" onclick="saveGameState()">💾 SALVAR ESTADO</button>
+<button class="btn" onclick="backMenu()">MENU</button>
+</div>
+
+<div id="info" class="screen hidden">
+<h1 id="infoTitle"></h1>
+<div class="panel" id="infoBody"></div>
+<button class="btn" onclick="closeInfo()">VOLTAR</button>
+</div>
+
+
+<script>
+let audioCtx=null;
+let soundEnabled=true;
+
+function initAudio(){
+try{
+if(!audioCtx){
+audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+}
+if(audioCtx.state==="suspended") audioCtx.resume();
+}catch(e){}
+}
+
+function playTone(freq=440,duration=0.08,type="square",volume=0.04,detune=0){
+if(!soundEnabled)return;
+initAudio();
+if(!audioCtx)return;
+
+try{
+let now=audioCtx.currentTime;
+let o=audioCtx.createOscillator();
+let g=audioCtx.createGain();
+
+o.type=type;
+o.frequency.setValueAtTime(freq,now);
+o.detune.setValueAtTime(detune,now);
+
+g.gain.setValueAtTime(0.0001,now);
+g.gain.exponentialRampToValueAtTime(volume,now+0.008);
+g.gain.exponentialRampToValueAtTime(0.0001,now+duration);
+
+o.connect(g);
+g.connect(audioCtx.destination);
+o.start(now);
+o.stop(now+duration+0.03);
+}catch(e){}
+}
+
+function cinematicNoise(duration=0.18,volume=0.04,filterFreq=1600){
+if(!soundEnabled)return;
+initAudio();
+if(!audioCtx)return;
+
+try{
+let now=audioCtx.currentTime;
+let buffer=audioCtx.createBuffer(1,audioCtx.sampleRate*duration,audioCtx.sampleRate);
+let data=buffer.getChannelData(0);
+
+for(let i=0;i<data.length;i++){
+let t=i/data.length;
+let envelope=Math.pow(1-t,1.7);
+data[i]=(Math.random()*2-1)*envelope;
+}
+
+let src=audioCtx.createBufferSource();
+let filter=audioCtx.createBiquadFilter();
+let g=audioCtx.createGain();
+
+filter.type="lowpass";
+filter.frequency.setValueAtTime(filterFreq,now);
+filter.Q.value=0.8;
+
+g.gain.setValueAtTime(0.0001,now);
+g.gain.exponentialRampToValueAtTime(volume,now+0.006);
+g.gain.exponentialRampToValueAtTime(0.0001,now+duration);
+
+src.buffer=buffer;
+src.connect(filter);
+filter.connect(g);
+g.connect(audioCtx.destination);
+
+src.start(now);
+src.stop(now+duration);
+}catch(e){}
+}
+
+function cinematicBass(freq=70,duration=0.35,volume=0.06){
+playTone(freq,duration,"sine",volume);
+}
+
+function soundShoot(){
+playTone(880,0.035,"square",0.018);
+playTone(420,0.08,"sawtooth",0.012,-8);
+setTimeout(()=>cinematicNoise(0.055,0.012,3200),12);
+}
+
+function soundExplosion(){
+cinematicBass(72,0.42,0.075);
+cinematicNoise(0.28,0.065,1100);
+setTimeout(()=>playTone(48,0.30,"sine",0.05),55);
+setTimeout(()=>cinematicNoise(0.16,0.025,700),130);
+}
+
+function soundPower(){
+playTone(360,0.08,"sine",0.025);
+setTimeout(()=>playTone(480,0.08,"sine",0.028),65);
+setTimeout(()=>playTone(640,0.09,"sine",0.03),130);
+setTimeout(()=>playTone(860,0.14,"sine",0.035),195);
+setTimeout(()=>playTone(1100,0.18,"sine",0.028),270);
+}
+
+function soundShield(){
+playTone(180,0.12,"sine",0.022);
+setTimeout(()=>playTone(280,0.12,"sine",0.026),70);
+setTimeout(()=>playTone(420,0.15,"sine",0.03),140);
+setTimeout(()=>playTone(620,0.20,"sine",0.032),215);
+cinematicNoise(0.22,0.018,2400);
+}
+
+function soundBoss(){
+cinematicBass(55,0.60,0.065);
+playTone(110,0.38,"sawtooth",0.035,-12);
+setTimeout(()=>playTone(82,0.42,"sawtooth",0.04,-18),170);
+setTimeout(()=>cinematicNoise(0.30,0.035,900),300);
+setTimeout(()=>playTone(42,0.50,"sine",0.055),430);
+}
+
+function soundVictory(){
+playTone(392,0.12,"sine",0.025);
+setTimeout(()=>playTone(523,0.12,"sine",0.028),110);
+setTimeout(()=>playTone(659,0.14,"sine",0.03),220);
+setTimeout(()=>playTone(784,0.16,"sine",0.032),340);
+setTimeout(()=>playTone(1046,0.28,"sine",0.038),470);
+setTimeout(()=>playTone(1318,0.35,"sine",0.025),610);
+}
+
+function soundGameOver(){
+cinematicBass(180,0.22,0.035);
+setTimeout(()=>playTone(145,0.22,"sawtooth",0.032),150);
+setTimeout(()=>playTone(110,0.28,"sawtooth",0.03),310);
+setTimeout(()=>playTone(75,0.36,"sine",0.035),500);
+setTimeout(()=>cinematicNoise(0.35,0.018,500),650);
+}
+
+document.addEventListener("pointerdown",initAudio,{once:true});
+</script>
+<script>
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
+
+let W=innerWidth,H=innerHeight;
+function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight}
+addEventListener("resize",resize); resize();
+
+const SAVE="spaceShooter5";
+const GAME_STATE="spaceShooter5_game_state";
+let data=JSON.parse(localStorage.getItem(SAVE)||"null")||{
+coins:0,high:0,world:1,ship:0,weapon:0,shield:0,
+missions:{kills:0,coins:0,bosses:0,power:0},
+achievements:{},
+upgrades:{damage:0,speed:0,shield:0,hp:0}
+};
+
+function save(){localStorage.setItem(SAVE,JSON.stringify(data));updateMenu()}
+
+const ships=[
+{name:"Fighter",price:0,hp:3,speed:6},
+{name:"Tank",price:120,hp:5,speed:4},
+{name:"Interceptor",price:220,hp:3,speed:8}
+];
+const weapons=[
+{name:"Laser",price:0,damage:1,rate:330},
+{name:"Plasma",price:180,damage:2,rate:420},
+{name:"Triple",price:350,damage:1,rate:470}
+];
+
+// Compatibilidade com saves antigos
+if(!Number.isInteger(data.ship) || !ships[data.ship]) data.ship=0;
+if(!Number.isInteger(data.weapon) || !weapons[data.weapon]) data.weapon=0;
+if(!data.upgrades || typeof data.upgrades!=="object") data.upgrades={damage:0,speed:0,shield:0,hp:0};
+if(typeof data.upgrades.damage!=="number") data.upgrades.damage=0;
+if(typeof data.upgrades.speed!=="number") data.upgrades.speed=0;
+if(typeof data.upgrades.shield!=="number") data.upgrades.shield=0;
+if(typeof data.upgrades.hp!=="number") data.upgrades.hp=0;
+if(!data.missions || typeof data.missions!=="object") data.missions={kills:0,coins:0,bosses:0,power:0};
+if(typeof data._faseKillsInicio!=="number") data._faseKillsInicio=data.missions.kills;
+
+
+let running=false,paused=false,jogoCompletado=false,celebracaoInicio=0;
+let player,enemies=[],bullets=[],enemyBullets=[],particles=[],powerups=[],stars=[];
+let score=0,runCoins=0,lives=3,world=1,level=1;
+let integridadeMax=100,integridade=100;
+let last=0,spawnTimer=0,shotTimer=0,boss=null,hitCooldown=0;
+let keys={},touchX=null,touchY=null;
+let powerRapid=0,powerShield=0,powerTriple=0,invulnerable=0;
+let shake=0;
+
+function atualizarIntegridade(){
+  let porcentagem=Math.max(0,Math.min(100,(integridade/integridadeMax)*100));
+
+  let barra=document.getElementById("integridadeBarra");
+  let texto=document.getElementById("integridadeTexto");
+
+  if(barra) barra.style.width=porcentagem+"%";
+  if(texto) texto.textContent=Math.ceil(porcentagem)+"%";
+}
+
+for(let i=0;i<180;i++){
+let camada=Math.random();
+let s,v;
+if(camada<.55){
+  s=Math.random()*1.1+.2;
+  v=Math.random()*.55+.15;
+}else if(camada<.88){
+  s=Math.random()*1.5+.4;
+  v=Math.random()*1.1+.45;
+}else{
+  s=Math.random()*2.2+.8;
+  v=Math.random()*1.8+.8;
+}
+stars.push({
+  x:Math.random()*W,
+  y:Math.random()*H,
+  s:s,
+  v:v,
+  brilho:Math.random()*.7+.3,
+  fase:Math.random()*Math.PI*2
+});
+}
+
+function updateMenu(){
+document.getElementById("menuCoins").textContent=data.coins;
+document.getElementById("menuHigh").textContent=data.high;
+}
+updateMenu();
+
+
+function saveGameState(){
+if(!running||!player)return;
+
+let estado={
+world,level,score,runCoins,lives,
+player,enemies,bullets,enemyBullets,particles,powerups,boss,
+powerRapid,powerShield,powerTriple,invulnerable,
+faseKillsInicio:data._faseKillsInicio
+};
+
+localStorage.setItem(GAME_STATE,JSON.stringify(estado));
+updateMenu();
+toast("💾 JOGO SALVO!");
+}
+
+function clearGameState(){
+localStorage.removeItem(GAME_STATE);
+updateMenu();
+}
+
+function continueGame(){
+let raw=localStorage.getItem(GAME_STATE);
+if(!raw){
+updateMenu();
+return;
+}
+
+try{
+let estado=JSON.parse(raw);
+
+hideAll();
+document.getElementById("hud").classList.remove("hidden");
+
+world=Math.max(1,Math.min(estado.world||1,10));
+level=Math.max(1,Math.min(estado.level||1,50));
+score=estado.score||0;
+runCoins=estado.runCoins||0;
+lives=estado.lives||1;
+
+player=estado.player||{x:W/2,y:H-100,r:22};
+enemies=estado.enemies||[];
+bullets=estado.bullets||[];
+enemyBullets=estado.enemyBullets||[];
+particles=estado.particles||[];
+powerups=estado.powerups||[];
+boss=estado.boss||null;
+
+powerRapid=estado.powerRapid||0;
+powerShield=estado.powerShield||0;
+powerTriple=estado.powerTriple||0;
+invulnerable=estado.invulnerable||0;
+
+data._faseKillsInicio=
+typeof estado.faseKillsInicio==="number"
+?estado.faseKillsInicio
+:data.missions.kills;
+
+keys={};
+touchX=null;
+touchY=null;
+
+running=true;
+paused=false;
+last=performance.now();
+
+toast("▶️ JOGO CONTINUADO!");
+requestAnimationFrame(loop);
+
+}catch(e){
+console.error(e);
+localStorage.removeItem(GAME_STATE);
+updateMenu();
+alert("Não foi possível carregar o jogo salvo.");
+}
+}
+
+function hideAll(){
+["menu","gameover","pauseScreen","info"].forEach(x=>document.getElementById(x).classList.add("hidden"));
+}
+function backMenu(){
+running=false;paused=false;hideAll();document.getElementById("menu").classList.remove("hidden");updateMenu();
+}
+function closeInfo(){hideAll();document.getElementById("menu").classList.remove("hidden");updateMenu()}
+
+function startGame(){
+clearGameState();
+hideAll();
+document.getElementById("hud").classList.remove("hidden");
+level=1;
+world=1;
+score=0;
+runCoins=0;
+lives=ships[data.ship].hp+data.upgrades.hp;
+integridade=integridadeMax;
+atualizarIntegridade();
+data._faseKillsInicio=data.missions.kills;
+enemies=[];bullets=[];enemyBullets=[];particles=[];powerups=[];boss=null;
+powerRapid=powerShield=powerTriple=0;
+player={x:W/2,y:H-100,r:22};
+running=true;paused=false;last=performance.now();
+requestAnimationFrame(loop);
+}
+
+function showWorlds(){
+document.getElementById("infoTitle").textContent="🌌 CAMPANHA";
+
+let t=`
+<div style="font-size:13px;margin-bottom:12px">
+🚀 <b>10 MUNDOS • 50 FASES</b><br>
+<span class="small">Cada mundo possui 5 fases e um Boss.</span>
+</div>
+<div class="grid">`;
+
+let nomes=[
+"",
+"Espaço Profundo",
+"Campo de Asteroides",
+"Nebulosa Azul",
+"Planeta Vermelho",
+"Zona Industrial",
+"Nebulosa Roxa",
+"Região Congelada",
+"Tempestade Cósmica",
+"Território Alienígena",
+"Centro da Galáxia"
+];
+
+let icones=[
+"",
+"🌌",
+"☄️",
+"🔵",
+"🔴",
+"🏭",
+"🟣",
+"❄️",
+"⚡",
+"👽",
+"🌠"
+];
+
+for(let i=1;i<=10;i++){
+
+let desbloqueado=i<=data.world;
+
+let faseInicio=(i-1)*5+1;
+let faseFim=i*5;
+
+t+=`
+<div class="card" style="margin:4px 0;padding:10px">
+<div style="font-size:15px">
+${icones[i]} <b>Mundo ${i}</b>
+</div>
+
+<div class="small">
+${nomes[i]}<br>
+Fases ${faseInicio}–${faseFim}
+</div>
+
+<div style="margin-top:5px;font-size:11px">
+${desbloqueado
+?"🔓 DESBLOQUEADO"
+:"🔒 Complete o mundo anterior"}
+</div>
+</div>`;
+}
+
+t+=`
+</div>
+<div style="margin-top:12px;font-size:12px">
+🏆 Progresso: <b>${Math.min(data.world,10)}/10 mundos</b>
+</div>
+
+<button class="btn" style="margin-top:14px;width:100%"
+onclick="closeInfo()">
+⬅️ VOLTAR AO MENU
+</button>`;
+
+document.getElementById("infoBody").innerHTML=t;
+document.getElementById("info").classList.remove("hidden");
+}
+function showShop(){
+hideAll();
+document.getElementById("info").classList.remove("hidden");
+document.getElementById("infoTitle").textContent="🛒 LOJA";
+
+let t=`<div>💰 Suas moedas: <b>${data.coins}</b></div>
+<div class="small" style="margin:8px 0 12px">
+Compre naves, armas e melhorias permanentes.
+</div>
+<div class="shop-grid">`;
+
+ships.forEach((s,i)=>{
+t+=`<div class="shop-card">
+🚀 ${s.name}<br>
+❤️ ${s.hp} • ⚡ ${s.speed}<br>
+<button class="btn shop-btn" onclick="buyShip(${i})">
+${data.ship===i?"EQUIPADO":i===0?"GRÁTIS":"💰 "+s.price}
+</button>
+</div>`;
+});
+
+weapons.forEach((w,i)=>{
+t+=`<div class="shop-card">
+🔫 ${w.name}<br>
+💥 Dano ${w.damage}<br>
+<button class="btn shop-btn" onclick="buyWeapon(${i})">
+${data.weapon===i?"EQUIPADO":i===0?"GRÁTIS":"💰 "+w.price}
+</button>
+</div>`;
+});
+
+let up=data.upgrades;
+
+let custoDano=50+(up.damage*50);
+let custoVel=50+(up.speed*50);
+let custoEscudo=75+(up.shield*75);
+let custoVida=100+(up.hp*100);
+
+t+=`<div class="shop-card">
+🔧 <b>DANO</b><br>
+<span class="small">Nível ${up.damage} • +1 dano por nível</span><br>
+<button class="btn shop-btn" onclick="buyUpgrade('damage',${custoDano})">
+💰 ${custoDano}
+</button>
+</div>
+
+<div class="shop-card">
+⚡ <b>VELOCIDADE</b><br>
+<span class="small">Nível ${up.speed} • nave mais rápida</span><br>
+<button class="btn shop-btn" onclick="buyUpgrade('speed',${custoVel})">
+💰 ${custoVel}
+</button>
+</div>
+
+<div class="shop-card">
+🛡️ <b>ESCUDO</b><br>
+<span class="small">Nível ${up.shield} • proteção permanente</span><br>
+<button class="btn shop-btn" onclick="buyUpgrade('shield',${custoEscudo})">
+💰 ${custoEscudo}
+</button>
+</div>
+
+<div class="shop-card">
+❤️ <b>VIDA</b><br>
+<span class="small">Nível ${up.hp} • +1 vida máxima</span><br>
+<button class="btn shop-btn" onclick="buyUpgrade('hp',${custoVida})">
+💰 ${custoVida}
+</button>
+</div>
+</div>
+
+<button class="btn shop-back" onclick="closeInfo()">
+⬅️ VOLTAR AO MENU
+</button>`;
+
+document.getElementById("infoBody").innerHTML=t;
+}
+
+function buyUpgrade(tipo,custo){
+if(data.coins<custo){
+return toast("💰 Moedas insuficientes!");
+}
+
+data.coins-=custo;
+data.upgrades[tipo]++;
+save();
+showShop();
+
+let nomes={
+damage:"🔧 DANO",
+speed:"⚡ VELOCIDADE",
+shield:"🛡️ ESCUDO",
+hp:"❤️ VIDA"
+};
+
+toast(nomes[tipo]+" melhorado!");
+}
+
+function showMissions(){
+hideAll();document.getElementById("info").classList.remove("hidden");
+document.getElementById("infoTitle").textContent="🎯 MISSÕES";
+let m=data.missions;
+document.getElementById("infoBody").innerHTML=`
+<div class="card">👾 Elimine 50 inimigos<br><b>${Math.min(m.kills,50)}/50</b></div>
+<div class="card">🪙 Colete 100 moedas<br><b>${Math.min(m.coins,100)}/100</b></div>
+<div class="card">⚡ Pegue 10 power-ups<br><b>${Math.min(m.power,10)}/10</b></div>
+<div class="card">👹 Derrote 3 bosses<br><b>${Math.min(m.bosses,3)}/3</b></div>`;
+}
+
+function showAchievements(){
+hideAll();document.getElementById("info").classList.remove("hidden");
+document.getElementById("infoTitle").textContent="🏆 CONQUISTAS";
+let a=[
+["Primeiro voo","Jogue uma partida",score>0],
+["Caçador","Elimine 50 inimigos",data.missions.kills>=50],
+["Milionário","Colete 100 moedas",data.missions.coins>=100],
+["Energia","Pegue 10 power-ups",data.missions.power>=10],
+["Destruidor","Derrote 3 bosses",data.missions.bosses>=3],
+["Explorador","Desbloqueie o Mundo 5",data.world>=10]
+];
+document.getElementById("infoBody").innerHTML=a.map(x=>`<div class="card">${x[2]?"🏆":"🔒"} ${x[0]}<br><span class="small">${x[1]}</span></div>`).join("");
+}
+
+function toast(msg){
+let e=document.getElementById("toast");e.textContent=msg;e.style.display="block";
+clearTimeout(window.tt);window.tt=setTimeout(()=>e.style.display="none",1400);
+}
+
+function togglePause(){
+if(!running)return;
+paused=!paused;
+document.getElementById("pauseScreen").classList.toggle("hidden",!paused);
+document.getElementById("hud").classList.toggle("hidden",paused);
+if(paused){
+saveGameState();
+}else{
+last=performance.now();
+requestAnimationFrame(loop);
+}
+}
+
+function spawnEnemy(){
+let type;
+let r=Math.random();
+
+/* PROGRESSÃO GRADUAL */
+if(level<3){
+  type="basic";
+}else if(level<5){
+  if(r<.18) type="fast";
+  else type="basic";
+}else if(level<8){
+  if(r<.20) type="tank";
+  else if(r<.42) type="fast";
+  else type="basic";
+}else{
+  if(r<.18) type="tank";
+  else if(r<.38) type="fast";
+  else if(r<.52 && level>=10) type="shooter";
+  else type="basic";
+}
+
+let difficulty=Math.floor(level/5);
+
+/* aceleração progressiva a partir do Mundo 5 */
+let acelMundo=Math.max(0,world-4)*.10;
+
+let e={
+  type,
+  x:35+Math.random()*(W-70),
+  y:-40,
+  r:18,
+  hp:1,
+  speed:1.0+Math.min(level*.045,1.8)+acelMundo,
+  phase:Math.random()*6
+};
+
+/* inimigo básico */
+if(type==="basic"){
+  e.r=18;
+  e.hp=1+Math.floor(level/12);
+  e.speed=1.0+level*.045+acelMundo;
+}
+
+/* inimigo rápido */
+if(type==="fast"){
+  e.r=13;
+  e.hp=1+Math.floor(level/15);
+  e.speed=1.7+level*.055+acelMundo*1.10;
+}
+
+/* tanque */
+if(type==="tank"){
+  e.r=28;
+  e.hp=4+world+Math.floor(level/4)+Math.floor(level/3)+Math.floor(level/5);
+  e.speed=.65+level*.018+acelMundo*.55;
+}
+
+/* atirador */
+if(type==="shooter"){
+  e.r=20;
+  e.hp=2+Math.floor(world/2)+Math.floor(level/10);
+  e.speed=.9+level*.025+acelMundo*.85;
+}
+
+e.max=e.hp;
+enemies.push(e);
+}
+function spawnBoss(){
+let bossLevel=Math.floor(level/5);
+let hp=60+(world*18)+(bossLevel*55)+(bossLevel*bossLevel*8)+(level===50?3500:0);
+
+boss={
+  x:W/2,
+  y:100,
+  r:48+Math.min(bossLevel*3,15),
+  hp:hp,
+  max:hp,
+  dir:1,
+  t:0
+};
+
+toast("👹 BOSS DA FASE "+level+"!");
+}
+function shoot(){
+let w=weapons[data.weapon];
+let damage=w.damage+data.upgrades.damage;
+if(powerRapid<=0&&performance.now()-shotTimer<w.rate)return;
+shotTimer=performance.now();
+soundShoot();
+
+/* clarão visual dos canhões */
+let flashY=player.y-25;
+
+[-11,11].forEach(x=>{
+  particles.push({
+    x:player.x+x,
+    y:flashY,
+    vx:0,
+    vy:-1.8,
+    life:12,
+    type:"muzzle"
+  });
+
+  particles.push({
+    x:player.x+x+(Math.random()-.5)*3,
+    y:flashY+2,
+    vx:(Math.random()-.5)*1.2,
+    vy:-2.5-Math.random()*1.5,
+    life:18,
+    type:"muzzle"
+  });
+});
+let triple=powerTriple>0||data.weapon===2;
+if(triple){
+[-.22,0,.22].forEach(a=>bullets.push({x:player.x,y:player.y-25,vx:Math.sin(a)*7,vy:-Math.cos(a)*9,r:3,damage}));
+}else bullets.push({x:player.x,y:player.y-25,vx:0,vy:-10,r:3,damage});
+}
+
+function hitEnemy(e,dmg){
+e.hp=Math.max(0,e.hp-dmg);
+
+/* flash de impacto */
+particles.push({
+  x:e.x,
+  y:e.y,
+  vx:0,
+  vy:0,
+  life:10,
+  type:"hitflash"
+});
+
+burst(e.x,e.y,5);
+if(e.hp<=0){
+e.dead=true;
+score+=e.type==="tank"?30:e.type==="fast"?15:20;
+data.missions.kills++;
+if(Math.random()<.75)dropCoin(e.x,e.y);
+if(Math.random()<.22)dropPower(e.x,e.y);
+}
+}
+
+function dropCoin(x,y){
+runCoins++;
+data.missions.coins++;
+particles.push({x,y,vx:0,vy:1,life:25,type:"coin"});
+}
+
+function dropPower(x,y){
+let types=["rapid","shield","triple","bomb"];
+let type=types[Math.floor(Math.random()*types.length)];
+powerups.push({x,y,r:13,type,vy:2});
+
+if(world>=5){
+let chanceCoracao=Math.min(.16,.06+(world-5)*.015);
+if(Math.random()<chanceCoracao){
+powerups.push({x:x+12,y:y,r:14,type:"heart",vy:1.8});
+}
+}
+}
+
+function activatePower(type){
+data.missions.power++;
+if(type==="rapid"){powerRapid=8000;soundPower();toast("⚡ TIRO RÁPIDO!")}
+if(type==="shield"){powerShield=8000;soundShield();toast("🛡️ ESCUDO ATIVADO!")}
+if(type==="triple"){powerTriple=8000;soundPower();toast("🔱 TIRO TRIPLO!")}
+if(type==="bomb"){soundExplosion();
+enemies.forEach(e=>{score+=10;burst(e.x,e.y,12)});
+enemies=[];
+toast("💣 BOMBA! INIMIGOS DESTRUÍDOS!");
+}
+
+if(type==="heart"){
+  if(lives<5){
+    lives++;
+    toast("❤️ VIDA EXTRA! +1");
+  }else{
+    toast("❤️ VIDA MÁXIMA!");
+  }
+}
+}
+
+function burst(x,y,n=12){
+if(n>=12)soundExplosion();
+for(let i=0;i<n;i++){
+let a=Math.random()*Math.PI*2,s=Math.random()*5+1;
+particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:25+Math.random()*20,type:"spark"});
+}
+shake=5;
+}
+
+function damagePlayer(dano){
+if(hitCooldown>0)return;
+hitCooldown=1000;
+
+if(powerShield>0 || invulnerable>0)return;
+
+if(typeof dano!=="number"){
+dano=8+Math.min(level-1,20)*0.5;
+}
+
+if(data.upgrades.shield>0){
+dano*=Math.max(0.25,1-(data.upgrades.shield*0.15));
+toast("🛡️ ESCUDO REDUZIU O IMPACTO!");
+burst(player.x,player.y,12);
+}
+
+integridade=Math.max(0,integridade-dano);
+atualizarIntegridade();
+
+invulnerable=700;
+shake=8;
+burst(player.x,player.y,10);
+
+if(integridade<=0){
+lives--;
+integridade=integridadeMax;
+atualizarIntegridade();
+
+invulnerable=2000;
+shake=16;
+burst(player.x,player.y,24);
+
+if(lives<=0)endGame();
+}
+}
+
+function endGame(){
+running=false;
+data.coins+=runCoins;
+if(score>data.high)data.high=score;
+save();
+document.getElementById("hud").classList.add("hidden");
+document.getElementById("gameover").classList.remove("hidden");
+document.getElementById("finalScore").textContent=score;
+document.getElementById("finalHigh").textContent=data.high;
+document.getElementById("finalCoins").textContent=runCoins;
+}
+
+function unlockWorld(){
+
+/* 5 fases completadas = próximo mundo */
+let novoMundo=Math.min(10,Math.floor((level-1)/5)+1);
+
+if(novoMundo>world){
+  world=novoMundo;
+
+  if(world>data.world){
+    data.world=world;
+  }
+
+  save();
+
+  let nomes=[
+    "",
+    "ESPAÇO PROFUNDO",
+    "CAMPO DE ASTEROIDES",
+    "NEBULOSA AZUL",
+    "PLANETA VERMELHO",
+    "ZONA INDUSTRIAL",
+    "NEBULOSA ROXA",
+    "REGIÃO CONGELADA",
+    "TEMPESTADE CÓSMICA",
+    "TERRITÓRIO ALIENÍGENA",
+    "CENTRO DA GALÁXIA"
+  ];
+
+  toast("🌌 MUNDO "+world+" • "+nomes[world]);
+}
+}
+
+function update(dt){
+stars.forEach(s=>{
+  s.y+=s.v*dt/16;
+  if(s.y>H){
+    s.y=0;
+    s.x=Math.random()*W;
+  }
+});
+
+hitCooldown=Math.max(0,hitCooldown-dt);
+let sp=ships[data.ship].speed+data.upgrades.speed+1.5;
+let dx=0,dy=0;
+
+if(keys.ArrowLeft||keys.a)dx-=1;
+if(keys.ArrowRight||keys.d)dx+=1;
+if(keys.ArrowUp||keys.w)dy-=1;
+if(keys.ArrowDown||keys.s)dy+=1;
+
+if(dx!==0||dy!==0){
+  let len=Math.hypot(dx,dy);
+  dx/=len;
+  dy/=len;
+  player.x+=dx*sp*dt/16;
+  player.y+=dy*sp*dt/16;
+}
+
+if(touchX!==null){
+  player.x+=(touchX-player.x)*.18;
+}
+if(touchY!==null){
+  player.y+=(touchY-player.y)*.18;
+}
+
+player.x=Math.max(25,Math.min(W-25,player.x));
+player.y=Math.max(45,Math.min(H-45,player.y));
+
+shoot();
+
+spawnTimer-=dt;
+
+/* quantidade necessária aumenta lentamente */
+let faseAlvo=10+Math.min(level*3,45);
+
+/* fases iniciais mais tranquilas */
+if(level<=2) faseAlvo=7+level*2;
+if(level>=10) faseAlvo=16+Math.min(level*3,50);
+
+/* intervalo entre inimigos */
+let interval;
+
+if(level<=2){
+  interval=1250-level*70;
+}else if(level<=5){
+  interval=1050-level*45;
+}else{
+  interval=Math.max(500,900-level*18);
+}
+
+if(spawnTimer<=0 && enemies.length < 7){
+  spawnEnemy();
+  spawnTimer=interval;
+}
+
+/* Boss a cada 5 fases */
+if(level%5===0 && !boss && enemies.length===0 && score>0){
+  spawnBoss();
+}
+
+bullets.forEach(b=>{b.x+=b.vx*dt/16;b.y+=b.vy*dt/16});
+bullets=bullets.filter(b=>b.y>-30&&b.x>-30&&b.x<W+30);
+
+enemies.forEach(e=>{
+let fase=level;
+
+let aproximacao=1+Math.min(fase,50)*.018;
+e.y+=e.speed*aproximacao*dt/16;
+
+if(e.type==="fast"){
+e.x+=Math.sin(e.phase+e.y*.03)*1.8;
+}
+
+if(e.type!=="fast" && e.y>70){
+let direcao=player.x-e.x;
+let agressividade=0.0022+Math.min(fase,50)*0.000035;
+let curva=Math.sin(e.phase+e.y*.018)*0.35;
+
+e.x+=Math.max(-1.15,Math.min(1.15,direcao*agressividade+curva))*dt;
+}
+
+e.x=Math.max(e.r+5,Math.min(W-e.r-5,e.x));
+
+/* disparos inimigos progressivos */
+let chanceTiro=Math.min(.007,.0009+fase*.00010);
+
+if(e.type==="fast") chanceTiro*=.75;
+if(e.type==="tank") chanceTiro*=.55;
+if(e.type==="shooter") chanceTiro*=1.35;
+
+if(Math.random()<chanceTiro*dt){
+let dx=player.x-e.x;
+let dy=player.y-e.y;
+let dist=Math.max(1,Math.hypot(dx,dy));
+let velocidade=6.5+Math.min(fase,50)*.04;
+
+enemyBullets.push({
+x:e.x,
+y:e.y+20,
+vx:(dx/dist)*velocidade*.30,
+vy:(dy/dist)*velocidade,
+r:2.5,
+type:e.type
+});
+}
+
+if(Math.hypot(e.x-player.x,e.y-player.y)<e.r+20){
+e.dead=true;
+damagePlayer();
+}
+});
+
+for(let b of bullets){
+for(let e of enemies){
+if(!e.dead&&Math.hypot(b.x-e.x,b.y-e.y)<b.r+e.r){
+b.y=-100;hitEnemy(e,b.damage);break;
+}
+}
+if(boss&&!b.dead&&Math.hypot(b.x-boss.x,b.y-boss.y)<b.r+boss.r){
+b.y=-100;boss.hp=Math.max(0,boss.hp-b.damage);burst(boss.x,boss.y,4);
+}
+}
+
+enemies=enemies.filter(e=>!e.dead&&e.y<H+60);
+enemyBullets.forEach(b=>{b.x+=b.vx*dt/16;b.y+=b.vy*dt/16});
+enemyBullets=enemyBullets.filter(b=>b.y<H+30);
+for(let b of enemyBullets){
+if(Math.hypot(b.x-player.x,b.y-player.y)<b.r+18){b.y=H+100;damagePlayer()}
+}
+
+powerups.forEach(p=>{p.y+=p.vy*dt/16});
+for(let p of powerups){
+if(Math.hypot(p.x-player.x,p.y-player.y)<p.r+22){p.y=H+100;activatePower(p.type)}
+}
+powerups=powerups.filter(p=>p.y<H+30);
+
+if(boss){
+boss.t+=dt;boss.x+=boss.dir*1.5*dt/16;
+if(boss.x<60||boss.x>W-60)boss.dir*=-1;
+let intervaloBoss=Math.max(280,700-Math.min(level*18,360));
+if(boss.t>intervaloBoss){
+  let dx=player.x-boss.x;
+  let dy=player.y-boss.y;
+  let dist=Math.max(1,Math.hypot(dx,dy));
+  let velocidade=2.2+Math.min(level*.035,1.8);
+
+  enemyBullets.push({
+    x:boss.x,
+    y:boss.y+35,
+    vx:(dx/dist)*velocidade,
+    vy:(dy/dist)*velocidade,
+    r:4
+  });
+
+  boss.t=0;
+}
+if(boss.hp<=0){
+let bossReward=100+Math.floor(level/5)*50;
+score+=500+level*50;
+runCoins+=bossReward;
+data.missions.bosses++;
+burst(boss.x,boss.y,50);
+
+if(level===50){
+  boss=null;
+  jogoCompletado=true;
+  celebracaoInicio=performance.now();
+  toast("🏆 NEXUS COMPLETADO!");
+
+  setTimeout(()=>{
+    jogoCompletado=false;
+    startGame();
+  },8000);
+}else{
+  boss=null;
+  toast("👹 BOSS DERROTADO! +"+bossReward+" 💰");
+  level++;
+  unlockWorld();
+}
+}
+}
+
+particles.forEach(p=>{p.x+=p.vx*dt/16;p.y+=p.vy*dt/16;p.vy+=.04;p.life-=dt/16});
+particles=particles.filter(p=>p.life>0);
+
+/* progressão por conclusão real da fase */
+if(!boss && enemies.length===0 && score>0){
+
+  let killsNaFase=data.missions.kills-(data._faseKillsInicio||0);
+
+  if(killsNaFase>=faseAlvo){
+    data._faseKillsInicio=data.missions.kills;
+
+    let bonus=10+level*3;
+    runCoins+=bonus;
+    score+=50+level*10;
+
+    toast("FASE "+level+" CONCLUÍDA! +"+bonus+" 💰");
+
+    level++;
+
+    if(level>data.level){
+      data.level=level;
+    }
+
+    unlockWorld();
+    saveGameState();
+  }
+}
+powerRapid=Math.max(0,powerRapid-dt);
+invulnerable=Math.max(0,invulnerable-dt);
+powerShield=Math.max(0,powerShield-dt);
+powerTriple=Math.max(0,powerTriple-dt);
+
+document.getElementById("world").textContent=world;
+document.getElementById("level").textContent=level;
+document.getElementById("score").textContent=score;
+document.getElementById("coins").textContent=runCoins;
+document.getElementById("lives").textContent=lives;
+
+let powers=[];
+if(powerRapid>0)powers.push("⚡ "+Math.ceil(powerRapid/1000)+"s");
+if(powerShield>0)powers.push("🛡️ "+Math.ceil(powerShield/1000)+"s");
+if(powerTriple>0)powers.push("🔱 "+Math.ceil(powerTriple/1000)+"s");
+document.getElementById("power").textContent=powers.join("   ");
+}
+
+function drawWorldBackground(){
+
+/* fundo base */
+let bg=[
+"#02040c",
+"#06101a",
+"#071426",
+"#180a0a",
+"#10091c",
+"#18052b",
+"#071522",
+"#15100a",
+"#071b19",
+"#13051e"
+][Math.min(world-1,9)];
+
+ctx.fillStyle=bg;
+ctx.fillRect(0,0,W,H);
+
+/* estrelas */
+for(let s of stars){
+  let tw=s.brilho*(.65+Math.sin(performance.now()*.0015+s.fase)*.35);
+  ctx.globalAlpha=Math.max(.18,tw);
+  ctx.fillStyle="#e8f7ff";
+
+  if(s.s>1.5){
+    ctx.beginPath();
+    ctx.arc(s.x,s.y,s.s*.7,0,Math.PI*2);
+    ctx.fill();
+  }else{
+    ctx.fillRect(s.x,s.y,s.s,s.s);
+  }
+}
+ctx.globalAlpha=1;
+
+/* detalhes especiais por mundo */
+
+if(world===2){
+  /* campo de asteroides */
+  ctx.fillStyle="#68717d";
+  for(let i=0;i<7;i++){
+    let x=(i*137+level*13)%W;
+    let y=(i*83+performance.now()*.018*(i+1))%H;
+    ctx.globalAlpha=.45;
+    ctx.beginPath();
+    ctx.arc(x,y,10+(i%3)*5,0,Math.PI*2);
+    ctx.fill();
+  }
+  ctx.globalAlpha=1;
+}
+
+if(world===3){
+  /* nebulosa azul */
+  let g=ctx.createRadialGradient(W*.25,H*.35,20,W*.25,H*.35,W*.7);
+  g.addColorStop(0,"#164b78");
+  g.addColorStop(.45,"#082846");
+  g.addColorStop(1,"transparent");
+  ctx.fillStyle=g;
+  ctx.fillRect(0,0,W,H);
+}
+
+if(world===4){
+  /* planeta vermelho */
+  ctx.save();
+  ctx.globalAlpha=.75;
+  ctx.fillStyle="#b83b32";
+  ctx.shadowBlur=40;
+  ctx.shadowColor="#ff4d32";
+  ctx.beginPath();
+  ctx.arc(W*.82,H*.20,85,0,Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+}
+
+if(world===5){
+  /* PLANETA DO MUNDO 5 */
+  let t=performance.now()*.00012;
+  let px=W*.82+Math.sin(t)*18;
+  let py=H*.27+Math.cos(t*.8)*10;
+  let pr=Math.min(W,H)*.23;
+
+  ctx.save();
+
+  /* atmosfera */
+  let atm=ctx.createRadialGradient(px,py,pr*.72,px,py,pr*1.35);
+  atm.addColorStop(0,"rgba(42,130,190,.16)");
+  atm.addColorStop(.65,"rgba(25,95,160,.10)");
+  atm.addColorStop(1,"rgba(0,0,0,0)");
+  ctx.fillStyle=atm;
+  ctx.beginPath();
+  ctx.arc(px,py,pr*1.35,0,Math.PI*2);
+  ctx.fill();
+
+  /* planeta */
+  let planeta=ctx.createRadialGradient(
+    px-pr*.35,py-pr*.40,pr*.08,
+    px,py,pr
+  );
+  planeta.addColorStop(0,"#4f9fbd");
+  planeta.addColorStop(.45,"#24627f");
+  planeta.addColorStop(.78,"#12384f");
+  planeta.addColorStop(1,"#061521");
+
+  ctx.fillStyle=planeta;
+  ctx.shadowBlur=35;
+  ctx.shadowColor="#1678a8";
+  ctx.beginPath();
+  ctx.arc(px,py,pr,0,Math.PI*2);
+  ctx.fill();
+
+  /* continentes */
+  ctx.shadowBlur=0;
+  ctx.fillStyle="rgba(79,151,105,.55)";
+
+  for(let i=0;i<6;i++){
+    let a=i*1.35+t*.4;
+    let x=px+Math.cos(a)*pr*.48;
+    let y=py+Math.sin(a)*pr*.38;
+
+    ctx.beginPath();
+    ctx.ellipse(
+      x,y,
+      pr*(.12+(i%3)*.035),
+      pr*(.06+(i%2)*.025),
+      a*.7,
+      0,Math.PI*2
+    );
+    ctx.fill();
+  }
+
+  /* faixa de nuvens */
+  ctx.strokeStyle="rgba(190,235,255,.22)";
+  ctx.lineWidth=5;
+  ctx.beginPath();
+  ctx.arc(px,py,pr*.78,-.45,1.35);
+  ctx.stroke();
+
+  /* sombra lateral */
+  let sombra=ctx.createRadialGradient(
+    px-pr*.35,py-pr*.25,pr*.2,
+    px+pr*.45,py+pr*.25,pr*1.1
+  );
+  sombra.addColorStop(0,"rgba(0,0,0,0)");
+  sombra.addColorStop(.65,"rgba(0,0,0,.10)");
+  sombra.addColorStop(1,"rgba(0,0,0,.62)");
+
+  ctx.fillStyle=sombra;
+  ctx.beginPath();
+  ctx.arc(px,py,pr,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+if(world===6){
+  /* PLANETA AZUL DO MUNDO 6 */
+  let t=performance.now()*.00010;
+  let px=W*.22+Math.sin(t)*14;
+  let py=H*.30+Math.cos(t*.7)*8;
+  let pr=Math.min(W,H)*.25;
+
+  ctx.save();
+
+  /* atmosfera */
+  let atm=ctx.createRadialGradient(px,py,pr*.65,px,py,pr*1.4);
+  atm.addColorStop(0,"rgba(70,180,255,.18)");
+  atm.addColorStop(.65,"rgba(20,100,210,.10)");
+  atm.addColorStop(1,"rgba(0,0,0,0)");
+  ctx.fillStyle=atm;
+  ctx.beginPath();
+  ctx.arc(px,py,pr*1.4,0,Math.PI*2);
+  ctx.fill();
+
+  /* planeta */
+  let planeta=ctx.createRadialGradient(
+    px-pr*.38,py-pr*.42,pr*.08,
+    px,py,pr
+  );
+  planeta.addColorStop(0,"#75d9ff");
+  planeta.addColorStop(.38,"#197ac0");
+  planeta.addColorStop(.72,"#103b78");
+  planeta.addColorStop(1,"#030d25");
+
+  ctx.fillStyle=planeta;
+  ctx.shadowBlur=38;
+  ctx.shadowColor="#168cff";
+  ctx.beginPath();
+  ctx.arc(px,py,pr,0,Math.PI*2);
+  ctx.fill();
+
+  /* faixas */
+  ctx.shadowBlur=0;
+  ctx.strokeStyle="rgba(180,235,255,.28)";
+  ctx.lineWidth=4;
+
+  for(let i=0;i<4;i++){
+    ctx.beginPath();
+    ctx.arc(px,py,pr*(.35+i*.13),-.8+i*.35,.9+i*.35);
+    ctx.stroke();
+  }
+
+  /* continentes */
+  ctx.fillStyle="rgba(52,190,145,.48)";
+
+  for(let i=0;i<7;i++){
+    let a=i*1.7+t*.35;
+    let x=px+Math.cos(a)*pr*.48;
+    let y=py+Math.sin(a)*pr*.38;
+
+    ctx.beginPath();
+    ctx.ellipse(
+      x,y,
+      pr*(.09+(i%3)*.035),
+      pr*(.045+(i%2)*.025),
+      a,
+      0,Math.PI*2
+    );
+    ctx.fill();
+  }
+
+  /* lua */
+  let mx=px+pr*1.35;
+  let my=py-pr*.72;
+  let mr=pr*.18;
+
+  ctx.fillStyle="#b8c4d0";
+  ctx.shadowBlur=16;
+  ctx.shadowColor="#9eb5c8";
+  ctx.beginPath();
+  ctx.arc(mx,my,mr,0,Math.PI*2);
+  ctx.fill();
+
+  /* crateres */
+  ctx.shadowBlur=0;
+  ctx.fillStyle="rgba(70,85,105,.45)";
+
+  for(let i=0;i<5;i++){
+    let a=i*2.1;
+    let cx=mx+Math.cos(a)*mr*.45;
+    let cy=my+Math.sin(a)*mr*.45;
+
+    ctx.beginPath();
+    ctx.arc(cx,cy,mr*(.10+(i%2)*.04),0,Math.PI*2);
+    ctx.fill();
+  }
+
+  /* sombra */
+  let sombra=ctx.createRadialGradient(
+    px-pr*.30,py-pr*.25,pr*.15,
+    px+pr*.50,py+pr*.35,pr*1.05
+  );
+  sombra.addColorStop(0,"rgba(0,0,0,0)");
+  sombra.addColorStop(.62,"rgba(0,0,0,.12)");
+  sombra.addColorStop(1,"rgba(0,0,0,.68)");
+
+  ctx.fillStyle=sombra;
+  ctx.beginPath();
+  ctx.arc(px,py,pr,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+if(world===7){
+  /* região congelada */
+  ctx.fillStyle="#6ee7ff";
+  ctx.globalAlpha=.13;
+  for(let i=0;i<10;i++){
+    let x=(i*91+40)%W;
+    let y=(i*157)%H;
+    ctx.beginPath();
+    ctx.arc(x,y,25+(i%4)*8,0,Math.PI*2);
+    ctx.fill();
+  }
+  ctx.globalAlpha=1;
+}
+
+if(world===8){
+  /* tempestade cósmica */
+  ctx.strokeStyle="#ff9e42";
+  ctx.globalAlpha=.20;
+  ctx.lineWidth=2;
+  for(let i=0;i<6;i++){
+    ctx.beginPath();
+    ctx.moveTo(0,i*100+20);
+    ctx.quadraticCurveTo(W*.5,i*100-50,W,i*100+40);
+    ctx.stroke();
+  }
+  ctx.globalAlpha=1;
+}
+
+if(world===9){
+  /* região alienígena */
+  ctx.fillStyle="#24e6a1";
+  ctx.globalAlpha=.12;
+  for(let i=0;i<9;i++){
+    let x=(i*113)%W;
+    let y=(i*71+80)%H;
+    ctx.beginPath();
+    ctx.arc(x,y,18+(i%3)*8,0,Math.PI*2);
+    ctx.fill();
+  }
+  ctx.globalAlpha=1;
+}
+
+if(world===10){
+  /* centro da galáxia */
+  let g=ctx.createRadialGradient(W/2,H*.35,10,W/2,H*.35,W*.75);
+  g.addColorStop(0,"#d86cff");
+  g.addColorStop(.18,"#602a91");
+  g.addColorStop(.55,"#1b1038");
+  g.addColorStop(1,"transparent");
+  ctx.fillStyle=g;
+  ctx.fillRect(0,0,W,H);
+
+  ctx.strokeStyle="#ffb8ff";
+  ctx.globalAlpha=.18;
+  ctx.beginPath();
+  ctx.ellipse(W/2,H*.35,W*.55,H*.16,0,0,Math.PI*2);
+  ctx.stroke();
+  ctx.globalAlpha=1;
+}
+
+}
+function draw(){
+ctx.save();
+
+if(shake>0){
+  ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);
+  shake*=.88;
+}
+
+/* FUNDO */
+drawWorldBackground();
+
+/* ESTRELAS */
+for(let s of stars){
+  ctx.globalAlpha=.25+s.s*.25;
+  ctx.fillStyle="#dff8ff";
+  ctx.beginPath();
+  ctx.arc(s.x,s.y,s.s,0,Math.PI*2);
+  ctx.fill();
+}
+ctx.globalAlpha=1;
+
+/* PARTÍCULAS */
+for(let p of particles){
+  let alpha=Math.max(0,p.life/40);
+  ctx.globalAlpha=alpha;
+
+  if(p.type==="hitflash"){
+    let tamanho=10+(1-p.life/10)*16;
+    ctx.fillStyle="#ffffff";
+    ctx.shadowBlur=18;
+    ctx.shadowColor="#42d8ff";
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,tamanho,0,Math.PI*2);
+    ctx.fill();
+    ctx.shadowBlur=0;
+  }else if(p.type==="coin"){
+    ctx.fillStyle="#ffd84a";
+    ctx.shadowBlur=12;
+    ctx.shadowColor="#ffd84a";
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,5,0,Math.PI*2);
+    ctx.fill();
+    ctx.shadowBlur=0;
+  }else{
+    ctx.fillStyle="#ffb347";
+    ctx.fillRect(p.x,p.y,3,3);
+  }
+}
+ctx.globalAlpha=1;
+
+/* POWER UPS */
+for(let p of powerups){
+  let c={
+    rapid:"#ffe600",
+    shield:"#00eaff",
+    triple:"#ff65e8",
+    bomb:"#ff6333"
+  }[p.type];
+
+  ctx.save();
+  ctx.translate(p.x,p.y);
+  ctx.shadowBlur=22;
+  ctx.shadowColor=c;
+  ctx.fillStyle=c;
+
+  ctx.beginPath();
+  ctx.arc(0,0,p.r,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.shadowBlur=0;
+  ctx.fillStyle="#07101c";
+  ctx.font="bold 13px Arial";
+  ctx.textAlign="center";
+  ctx.textBaseline="middle";
+  ctx.fillText(
+    {rapid:"⚡",shield:"S",triple:"3X",bomb:"💣",heart:"❤️"}[p.type],
+    0,0
+  );
+  ctx.restore();
+}
+
+/* INIMIGOS — NAVES */
+for(let e of enemies){
+  ctx.save();
+  ctx.translate(e.x,e.y);
+  ctx.rotate(Math.PI);
+
+  let main =
+    e.type==="tank" ? "#7c45c9" :
+    e.type==="fast" ? "#dcae32" :
+    e.type==="shooter" ? "#c94d57" :
+    "#a93642";
+
+  ctx.shadowBlur=12;
+  ctx.shadowColor=main;
+
+  /* asas — formato próprio do atirador */
+  if(e.type==="shooter"){
+    let shooterHull=ctx.createLinearGradient(0,-e.r,0,e.r);
+    shooterHull.addColorStop(0,"#ff7180");
+    shooterHull.addColorStop(.45,"#c42f48");
+    shooterHull.addColorStop(1,"#641b2c");
+
+    ctx.fillStyle=shooterHull;
+    ctx.shadowBlur=16;
+    ctx.shadowColor="#ff304f";
+
+    /* asa esquerda */
+    ctx.beginPath();
+    ctx.moveTo(-e.r*.18,-e.r*.25);
+    ctx.lineTo(-e.r*1.45,e.r*.10);
+    ctx.lineTo(-e.r*1.15,e.r*.72);
+    ctx.lineTo(-e.r*.38,e.r*.45);
+    ctx.lineTo(-e.r*.22,e.r*.10);
+    ctx.closePath();
+    ctx.fill();
+
+    /* asa direita */
+    ctx.beginPath();
+    ctx.moveTo(e.r*.18,-e.r*.25);
+    ctx.lineTo(e.r*1.45,e.r*.10);
+    ctx.lineTo(e.r*1.15,e.r*.72);
+    ctx.lineTo(e.r*.38,e.r*.45);
+    ctx.lineTo(e.r*.22,e.r*.10);
+    ctx.closePath();
+    ctx.fill();
+
+    /* ponta central frontal */
+    ctx.fillStyle="#ff435c";
+    ctx.beginPath();
+    ctx.moveTo(0,-e.r*1.05);
+    ctx.lineTo(e.r*.28,-e.r*.20);
+    ctx.lineTo(0,e.r*.28);
+    ctx.lineTo(-e.r*.28,-e.r*.20);
+    ctx.closePath();
+    ctx.fill();
+  }else{
+    /* asas padrão */
+    ctx.fillStyle=main;
+    ctx.beginPath();
+    ctx.moveTo(0,-e.r);
+    ctx.lineTo(e.r*.95,e.r*.7);
+    ctx.lineTo(e.r*.25,e.r*.35);
+    ctx.lineTo(0,e.r*.75);
+    ctx.lineTo(-e.r*.25,e.r*.35);
+    ctx.lineTo(-e.r*.95,e.r*.7);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  /* detalhes de energia do inimigo rápido */
+  if(e.type==="fast"){
+    let fastPulse=.65+Math.sin(performance.now()*.008+e.phase)*.35;
+    ctx.globalAlpha=fastPulse;
+    ctx.strokeStyle="#fff0a0";
+    ctx.lineWidth=2;
+    ctx.shadowBlur=10;
+    ctx.shadowColor="#ffd84a";
+
+    ctx.beginPath();
+    ctx.moveTo(-e.r*.65,e.r*.45);
+    ctx.lineTo(-e.r*.25,e.r*.15);
+    ctx.moveTo(e.r*.65,e.r*.45);
+    ctx.lineTo(e.r*.25,e.r*.15);
+    ctx.stroke();
+
+    ctx.globalAlpha=1;
+    ctx.shadowBlur=12;
+  }
+
+  /* casco central */
+  ctx.fillStyle="#273449";
+  ctx.beginPath();
+  ctx.ellipse(0,0,e.r*.38,e.r*.65,0,0,Math.PI*2);
+  ctx.fill();
+
+  /* cabine */
+  ctx.fillStyle="#7de8ff";
+  ctx.beginPath();
+  ctx.ellipse(0,-e.r*.15,e.r*.20,e.r*.28,0,0,Math.PI*2);
+  ctx.fill();
+
+  /* motores */
+  ctx.fillStyle="#ff9b38";
+  ctx.shadowBlur=15;
+  ctx.shadowColor="#ff5a20";
+  ctx.beginPath();
+  ctx.arc(-e.r*.35,e.r*.65,e.r*.14,0,Math.PI*2);
+  ctx.arc(e.r*.35,e.r*.65,e.r*.14,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.shadowBlur=0;
+
+  /* ATIRADOR — NAVE DE COMBATE */
+  if(e.type==="shooter"){
+    let shooterPulse=.65+Math.sin(performance.now()*.006+e.phase)*.35;
+
+    /* asas de combate reforçadas */
+    let shooterWing=ctx.createLinearGradient(0,-e.r,0,e.r);
+    shooterWing.addColorStop(0,"#ff6576");
+    shooterWing.addColorStop(.45,"#a92840");
+    shooterWing.addColorStop(1,"#421827");
+
+    ctx.fillStyle=shooterWing;
+    ctx.shadowBlur=14;
+    ctx.shadowColor="#ff304f";
+
+    ctx.beginPath();
+    ctx.moveTo(-e.r*.18,-e.r*.05);
+    ctx.lineTo(-e.r*1.25,e.r*.38);
+    ctx.lineTo(-e.r*.95,e.r*.70);
+    ctx.lineTo(-e.r*.25,e.r*.38);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(e.r*.18,-e.r*.05);
+    ctx.lineTo(e.r*1.25,e.r*.38);
+    ctx.lineTo(e.r*.95,e.r*.70);
+    ctx.lineTo(e.r*.25,e.r*.38);
+    ctx.closePath();
+    ctx.fill();
+
+    /* linhas de energia nas asas */
+    ctx.globalAlpha=shooterPulse;
+    ctx.strokeStyle="#ff9daa";
+    ctx.lineWidth=2;
+    ctx.shadowBlur=10;
+    ctx.shadowColor="#ff4058";
+
+    ctx.beginPath();
+    ctx.moveTo(-e.r*.98,e.r*.42);
+    ctx.lineTo(-e.r*.38,e.r*.20);
+    ctx.moveTo(e.r*.98,e.r*.42);
+    ctx.lineTo(e.r*.38,e.r*.20);
+    ctx.stroke();
+
+    /* dois canhões */
+    ctx.globalAlpha=1;
+    let cannon=ctx.createLinearGradient(0,-e.r,0,e.r);
+    cannon.addColorStop(0,"#e8eef5");
+    cannon.addColorStop(.5,"#71808f");
+    cannon.addColorStop(1,"#252d38");
+
+    ctx.fillStyle=cannon;
+    ctx.shadowBlur=7;
+    ctx.shadowColor="#ff5268";
+
+    ctx.fillRect(-e.r*.78,-e.r*.02,e.r*.16,e.r*.62);
+    ctx.fillRect(e.r*.62,-e.r*.02,e.r*.16,e.r*.62);
+
+    /* bocais de energia */
+    ctx.fillStyle="#ff4058";
+    ctx.shadowBlur=14;
+    ctx.shadowColor="#ff304f";
+
+    ctx.beginPath();
+    ctx.arc(-e.r*.70,e.r*.62,e.r*.10,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(e.r*.70,e.r*.62,e.r*.10,0,Math.PI*2);
+    ctx.fill();
+
+    /* blindagem frontal */
+    ctx.globalAlpha=.98;
+    let armor=ctx.createLinearGradient(-e.r*.3,0,e.r*.3,0);
+    armor.addColorStop(0,"#531b2b");
+    armor.addColorStop(.5,"#ff596d");
+    armor.addColorStop(1,"#531b2b");
+
+    ctx.fillStyle=armor;
+    ctx.shadowBlur=10;
+    ctx.shadowColor="#ff4058";
+
+    ctx.beginPath();
+    ctx.moveTo(0,-e.r*.62);
+    ctx.lineTo(e.r*.30,-e.r*.10);
+    ctx.lineTo(e.r*.22,e.r*.42);
+    ctx.lineTo(0,e.r*.58);
+    ctx.lineTo(-e.r*.22,e.r*.42);
+    ctx.lineTo(-e.r*.30,-e.r*.10);
+    ctx.closePath();
+    ctx.fill();
+
+    /* núcleo central pulsante */
+    ctx.globalAlpha=shooterPulse;
+    ctx.fillStyle="#fff1f3";
+    ctx.shadowBlur=20;
+    ctx.shadowColor="#ff304f";
+    ctx.beginPath();
+    ctx.arc(0,e.r*.18,e.r*.15,0,Math.PI*2);
+    ctx.fill();
+
+    /* pequeno visor vermelho */
+    ctx.globalAlpha=1;
+    ctx.fillStyle="#ffb8c2";
+    ctx.shadowBlur=8;
+    ctx.shadowColor="#ff5268";
+    ctx.fillRect(-e.r*.13,-e.r*.42,e.r*.26,e.r*.10);
+
+    ctx.shadowBlur=0;
+  }
+
+  /* tanque blindado */
+  if(e.type==="tank"){
+    /* anel externo da blindagem */
+    ctx.strokeStyle="#d7c6ff";
+    ctx.lineWidth=3;
+    ctx.shadowBlur=10;
+    ctx.shadowColor="#9b6cff";
+    ctx.beginPath();
+    ctx.arc(0,0,e.r*.85,0,Math.PI*2);
+    ctx.stroke();
+
+    /* placas metálicas laterais */
+    let armor=ctx.createLinearGradient(0,-e.r,0,e.r);
+    armor.addColorStop(0,"#c8b8e8");
+    armor.addColorStop(.45,"#75638f");
+    armor.addColorStop(1,"#3d344d");
+
+    ctx.fillStyle=armor;
+    ctx.beginPath();
+    ctx.moveTo(-e.r*.72,-e.r*.05);
+    ctx.lineTo(-e.r*.48,-e.r*.62);
+    ctx.lineTo(-e.r*.18,-e.r*.42);
+    ctx.lineTo(-e.r*.28,e.r*.38);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(e.r*.72,-e.r*.05);
+    ctx.lineTo(e.r*.48,-e.r*.62);
+    ctx.lineTo(e.r*.18,-e.r*.42);
+    ctx.lineTo(e.r*.28,e.r*.38);
+    ctx.closePath();
+    ctx.fill();
+
+    /* núcleo de energia */
+    let tankPulse=.65+Math.sin(performance.now()*.004+e.phase)*.35;
+    ctx.globalAlpha=tankPulse;
+    ctx.fillStyle="#d9b8ff";
+    ctx.shadowBlur=16;
+    ctx.shadowColor="#a85cff";
+    ctx.beginPath();
+    ctx.arc(0,e.r*.18,e.r*.13,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.globalAlpha=1;
+    ctx.shadowBlur=0;
+
+    /* barra de vida */
+    ctx.fillStyle="#222";
+    ctx.fillRect(-e.r,-e.r-9,e.r*2,4);
+    ctx.fillStyle="#43e07a";
+    ctx.fillRect(-e.r,-e.r-9,e.r*2*Math.max(0,e.hp/e.max),4);
+  }
+
+  ctx.restore();
+}
+
+/* TIROS DO JOGADOR */
+for(let b of bullets){
+  ctx.save();
+  ctx.translate(b.x,b.y);
+
+  ctx.fillStyle="#d9ffff";
+  ctx.shadowBlur=18;
+  ctx.shadowColor="#00eaff";
+
+  ctx.beginPath();
+  ctx.roundRect(-2,-9,4,18,2);
+  ctx.fill();
+
+  /* núcleo concentrado do disparo */
+  ctx.fillStyle="#ffffff";
+  ctx.shadowBlur=8;
+  ctx.shadowColor="#ffffff";
+
+  ctx.beginPath();
+  ctx.roundRect(-.75,-7,1.5,14,.75);
+  ctx.fill();
+
+  ctx.shadowBlur=0;
+
+  ctx.restore();
+}
+
+/* TIROS INIMIGOS */
+for(let b of enemyBullets){
+  ctx.save();
+  ctx.translate(b.x,b.y);
+
+  let ehBoss=b.r>=4;
+  let ehTank=b.type==="tank";
+
+  if(ehBoss){
+    /* Boss = maior e especial */
+    ctx.fillStyle="#ffd84a";
+    ctx.shadowBlur=24;
+    ctx.shadowColor="#ff8c00";
+
+    ctx.beginPath();
+    ctx.roundRect(-2.5,-11,5,22,2.5);
+    ctx.fill();
+
+    ctx.fillStyle="#ffffff";
+    ctx.shadowBlur=12;
+    ctx.shadowColor="#ffffff";
+    ctx.beginPath();
+    ctx.roundRect(-1,-8,2,16,1);
+    ctx.fill();
+
+  }else if(ehTank){
+    /* nave roxa = mesmo visual do nosso tiro, mas vermelho */
+    ctx.fillStyle="#4b0082";
+    ctx.shadowBlur=18;
+    ctx.shadowColor="#240046";
+
+    ctx.beginPath();
+    ctx.roundRect(-2,-9,4,18,2);
+    ctx.fill();
+
+    ctx.fillStyle="#ffffff";
+    ctx.shadowBlur=8;
+    ctx.shadowColor="#ffffff";
+    ctx.beginPath();
+    ctx.roundRect(-.75,-7,1.5,14,.75);
+    ctx.fill();
+
+  }else{
+    /* outras naves = visual original */
+    ctx.fillStyle="#ff5266";
+    ctx.shadowBlur=18;
+    ctx.shadowColor="#ff304d";
+
+    ctx.beginPath();
+    let raioVisual=2;
+    let comprimentoVisual=6;
+    ctx.ellipse(0,0,raioVisual,comprimentoVisual,0,0,Math.PI*2);
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
+
+/* BOSS — NAVIO DE GUERRA */
+if(boss){
+  ctx.save();
+  ctx.translate(boss.x,boss.y);
+  ctx.rotate(Math.PI);
+
+  let c="#7428a8";
+  let bossPulse=.72+Math.sin(performance.now()*.004)*.28;
+
+  ctx.shadowBlur=30;
+  ctx.shadowColor="#d000ff";
+
+  /* asas blindadas */
+  let armor=ctx.createLinearGradient(0,-boss.r,0,boss.r);
+  armor.addColorStop(0,"#a94bd0");
+  armor.addColorStop(.42,"#5b287d");
+  armor.addColorStop(1,"#24152f");
+
+  ctx.fillStyle=armor;
+  ctx.beginPath();
+  ctx.moveTo(0,-boss.r);
+  ctx.lineTo(boss.r*1.65,boss.r*.45);
+  ctx.lineTo(boss.r*1.25,boss.r*.72);
+  ctx.lineTo(boss.r*.72,boss.r*.48);
+  ctx.lineTo(boss.r*.42,boss.r*.95);
+  ctx.lineTo(0,boss.r*.58);
+  ctx.lineTo(-boss.r*.42,boss.r*.95);
+  ctx.lineTo(-boss.r*.72,boss.r*.48);
+  ctx.lineTo(-boss.r*1.25,boss.r*.72);
+  ctx.lineTo(-boss.r*1.65,boss.r*.45);
+  ctx.closePath();
+  ctx.fill();
+
+  /* espinhos de guerra */
+  ctx.fillStyle="#d44aff";
+
+  ctx.beginPath();
+  ctx.moveTo(-boss.r*1.25,boss.r*.72);
+  ctx.lineTo(-boss.r*1.72,boss.r*.98);
+  ctx.lineTo(-boss.r*1.42,boss.r*.42);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(boss.r*1.25,boss.r*.72);
+  ctx.lineTo(boss.r*1.72,boss.r*.98);
+  ctx.lineTo(boss.r*1.42,boss.r*.42);
+  ctx.closePath();
+  ctx.fill();
+
+  /* linhas de energia nas asas */
+  ctx.globalAlpha=bossPulse;
+  ctx.strokeStyle="#ff315c";
+  ctx.lineWidth=3;
+  ctx.shadowBlur=15;
+  ctx.shadowColor="#ff315c";
+
+  ctx.beginPath();
+  ctx.moveTo(-boss.r*1.25,boss.r*.48);
+  ctx.lineTo(-boss.r*.55,boss.r*.25);
+  ctx.moveTo(boss.r*1.25,boss.r*.48);
+  ctx.lineTo(boss.r*.55,boss.r*.25);
+  ctx.stroke();
+
+  ctx.globalAlpha=1;
+
+  /* casco blindado */
+  let hull=ctx.createLinearGradient(-boss.r*.6,0,boss.r*.6,0);
+  hull.addColorStop(0,"#111722");
+  hull.addColorStop(.5,"#344158");
+  hull.addColorStop(1,"#111722");
+
+  ctx.fillStyle=hull;
+  ctx.beginPath();
+  ctx.ellipse(0,0,boss.r*.58,boss.r*.88,0,0,Math.PI*2);
+  ctx.fill();
+
+  /* placas frontais */
+  ctx.strokeStyle="#71819a";
+  ctx.lineWidth=3;
+  ctx.shadowBlur=6;
+  ctx.shadowColor="#9baac0";
+
+  ctx.beginPath();
+  ctx.moveTo(-boss.r*.38,-boss.r*.38);
+  ctx.lineTo(-boss.r*.20,-boss.r*.05);
+  ctx.lineTo(-boss.r*.30,boss.r*.35);
+  ctx.moveTo(boss.r*.38,-boss.r*.38);
+  ctx.lineTo(boss.r*.20,-boss.r*.05);
+  ctx.lineTo(boss.r*.30,boss.r*.35);
+  ctx.stroke();
+
+  /* núcleo demoníaco */
+  ctx.globalAlpha=bossPulse;
+  ctx.fillStyle="#ff174e";
+  ctx.shadowBlur=28;
+  ctx.shadowColor="#ff174e";
+
+  ctx.beginPath();
+  ctx.arc(0,5,boss.r*.27,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.fillStyle="#ffd1dc";
+  ctx.shadowBlur=12;
+  ctx.beginPath();
+  ctx.arc(0,5,boss.r*.10,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.globalAlpha=1;
+
+  /* visor ameaçador */
+  ctx.fillStyle="#ff315c";
+  ctx.shadowBlur=16;
+  ctx.shadowColor="#ff174e";
+
+  ctx.beginPath();
+  ctx.moveTo(-boss.r*.27,-boss.r*.34);
+  ctx.lineTo(-boss.r*.05,-boss.r*.40);
+  ctx.lineTo(-boss.r*.12,-boss.r*.22);
+  ctx.lineTo(-boss.r*.30,-boss.r*.20);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(boss.r*.27,-boss.r*.34);
+  ctx.lineTo(boss.r*.05,-boss.r*.40);
+  ctx.lineTo(boss.r*.12,-boss.r*.22);
+  ctx.lineTo(boss.r*.30,-boss.r*.20);
+  ctx.closePath();
+  ctx.fill();
+
+  /* canhões pesados */
+  let cannon=ctx.createLinearGradient(0,-10,0,10);
+  cannon.addColorStop(0,"#aab6c5");
+  cannon.addColorStop(.5,"#3b4655");
+  cannon.addColorStop(1,"#141a23");
+
+  ctx.fillStyle=cannon;
+  ctx.shadowBlur=8;
+  ctx.shadowColor="#ff315c";
+
+  ctx.fillRect(-boss.r*.98,-7,boss.r*.52,14);
+  ctx.fillRect(boss.r*.46,-7,boss.r*.52,14);
+
+  /* bocais vermelhos */
+  ctx.fillStyle="#ff315c";
+  ctx.shadowBlur=18;
+  ctx.shadowColor="#ff174e";
+
+  ctx.beginPath();
+  ctx.arc(-boss.r*.98,0,boss.r*.09,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.arc(boss.r*.98,0,boss.r*.09,0,Math.PI*2);
+  ctx.fill();
+
+  /* motores */
+  ctx.fillStyle="#ff8c32";
+  ctx.shadowBlur=22;
+  ctx.shadowColor="#ff4d1c";
+  ctx.beginPath();
+  ctx.arc(-boss.r*.45,boss.r*.65,boss.r*.15,0,Math.PI*2);
+  ctx.arc(boss.r*.45,boss.r*.65,boss.r*.15,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.shadowBlur=0;
+
+  /* barra de vida */
+  ctx.fillStyle="#151515";
+  ctx.fillRect(-70,-boss.r-22,140,8);
+
+  ctx.fillStyle="#ff315c";
+  ctx.fillRect(
+    -70,
+    -boss.r-22,
+    140*Math.max(0,boss.hp/boss.max),
+    8
+  );
+
+  ctx.fillStyle="#fff";
+  ctx.font="bold 15px Arial";
+  ctx.textAlign="center";
+  ctx.fillText("BOSS",0,-boss.r-30);
+
+  ctx.restore();
+}
+
+/* NAVE DO JOGADOR */
+if(player){
+  ctx.save();
+  ctx.translate(player.x,player.y);
+
+  /* inclinação conforme movimento */
+  let tilt=0;
+
+  if(keys.ArrowLeft||keys.a) tilt=-.16;
+  if(keys.ArrowRight||keys.d) tilt=.16;
+
+  if(touchX!==null){
+    tilt=Math.max(-.20,Math.min(.20,(touchX-player.x)*.004));
+  }
+
+  ctx.rotate(tilt);
+
+  let shipColor=powerShield>0?"#00eaff":"#b8c7d9";
+  let shipDark=powerShield>0?"#008fa3":"#718295";
+
+  /* chama dos motores */
+  let flame=10+Math.random()*12;
+
+  /* chama externa */
+  ctx.fillStyle="#ff6a21";
+  ctx.shadowBlur=20;
+  ctx.shadowColor="#ff3d00";
+
+  ctx.beginPath();
+  ctx.moveTo(-10,19);
+  ctx.lineTo(-4,19+flame);
+  ctx.lineTo(0,20);
+  ctx.lineTo(4,19+flame);
+  ctx.lineTo(10,19);
+  ctx.closePath();
+  ctx.fill();
+
+  /* núcleo quente */
+  ctx.fillStyle="#fff4a3";
+  ctx.shadowBlur=10;
+  ctx.shadowColor="#ffd84a";
+
+  ctx.beginPath();
+  ctx.moveTo(-5,20);
+  ctx.lineTo(-2,20+flame*.65);
+  ctx.lineTo(0,22);
+  ctx.lineTo(2,20+flame*.65);
+  ctx.lineTo(5,20);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.shadowBlur=0;
+
+  /* asas */
+  let wingMetal=ctx.createLinearGradient(0,-30,0,28);
+  wingMetal.addColorStop(0,"#71869b");
+  wingMetal.addColorStop(.45,"#d5e0ea");
+  wingMetal.addColorStop(.7,"#536477");
+  wingMetal.addColorStop(1,"#293746");
+
+  ctx.shadowBlur=12;
+  ctx.shadowColor="#9fb5cc";
+  ctx.fillStyle=wingMetal;
+
+  ctx.beginPath();
+  ctx.moveTo(0,-34);
+  ctx.lineTo(31,23);
+  ctx.lineTo(8,17);
+  ctx.lineTo(0,25);
+  ctx.lineTo(-8,17);
+  ctx.lineTo(-31,23);
+  ctx.closePath();
+  ctx.fill();
+
+  /* corpo */
+  let metal=ctx.createLinearGradient(-13,-35,13,25);
+  metal.addColorStop(0,shipColor);
+  metal.addColorStop(.45,"#eef5fb");
+  metal.addColorStop(.72,shipColor);
+  metal.addColorStop(1,shipDark);
+
+  ctx.fillStyle=metal;
+  ctx.beginPath();
+  ctx.moveTo(0,-39);
+  ctx.lineTo(13,10);
+  ctx.lineTo(9,27);
+  ctx.lineTo(0,18);
+  ctx.lineTo(-9,27);
+  ctx.lineTo(-13,10);
+  ctx.closePath();
+  ctx.fill();
+
+  /* cabine */
+  let glass=ctx.createLinearGradient(-6,-25,6,0);
+  glass.addColorStop(0,"#d9fbff");
+  glass.addColorStop(.25,"#42d8ff");
+  glass.addColorStop(.65,"#087fa8");
+  glass.addColorStop(1,"#063b55");
+
+  ctx.shadowBlur=14;
+  ctx.shadowColor="#42d8ff";
+  ctx.fillStyle=glass;
+
+  ctx.beginPath();
+  ctx.ellipse(0,-13,7,13,0,0,Math.PI*2);
+  ctx.fill();
+
+  /* reflexo do vidro */
+  ctx.shadowBlur=0;
+  ctx.fillStyle="rgba(255,255,255,.65)";
+  ctx.beginPath();
+  ctx.ellipse(-2,-18,2,5,-.35,0,Math.PI*2);
+  ctx.fill();
+
+  /* detalhes metálicos */
+  ctx.shadowBlur=0;
+  ctx.strokeStyle="#e8f3ff";
+  ctx.lineWidth=2;
+
+  ctx.beginPath();
+  ctx.moveTo(-8,8);
+  ctx.lineTo(-22,17);
+  ctx.moveTo(8,8);
+  ctx.lineTo(22,17);
+  ctx.stroke();
+
+  /* painéis das asas */
+  ctx.strokeStyle="rgba(230,242,252,.65)";
+  ctx.lineWidth=1;
+
+  ctx.beginPath();
+  ctx.moveTo(-4,5);
+  ctx.lineTo(-17,19);
+  ctx.moveTo(4,5);
+  ctx.lineTo(17,19);
+  ctx.stroke();
+
+  /* linha central do casco */
+  ctx.strokeStyle="rgba(255,255,255,.45)";
+  ctx.beginPath();
+  ctx.moveTo(0,-34);
+  ctx.lineTo(0,15);
+  ctx.stroke();
+
+  /* canhões */
+  let cannonMetal=ctx.createLinearGradient(0,-2,0,12);
+  cannonMetal.addColorStop(0,"#f4fbff");
+  cannonMetal.addColorStop(.45,"#a9bac9");
+  cannonMetal.addColorStop(1,"#526474");
+
+  ctx.fillStyle=cannonMetal;
+  ctx.fillRect(-13,-2,4,14);
+  ctx.fillRect(9,-2,4,14);
+
+  /* núcleo de energia dos canhões */
+  ctx.fillStyle="#b9fbff";
+  ctx.shadowBlur=10;
+  ctx.shadowColor="#42d8ff";
+
+  ctx.beginPath();
+  ctx.arc(-11,0,2.2,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.arc(11,0,2.2,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.shadowBlur=0;
+
+  /* pontas de energia */
+  ctx.fillStyle="#8ff6ff";
+  ctx.shadowBlur=8;
+  ctx.shadowColor="#42d8ff";
+  ctx.fillRect(-13,-3,4,3);
+  ctx.fillRect(9,-3,4,3);
+  ctx.shadowBlur=0;
+
+  /* luzes de navegação das asas */
+  let navPulse=.65+Math.sin(performance.now()*.006)*.35;
+  ctx.globalAlpha=navPulse;
+  ctx.fillStyle="#7eeaff";
+  ctx.shadowBlur=8;
+  ctx.shadowColor="#42d8ff";
+
+  ctx.beginPath();
+  ctx.arc(-25,18,2.2,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.arc(25,18,2.2,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.globalAlpha=1;
+  ctx.shadowBlur=0;
+
+  /* reflexo metálico do casco */
+  let reflexoX=Math.sin(performance.now()*.0012)*8;
+
+  ctx.save();
+  ctx.globalAlpha=.16;
+  ctx.translate(reflexoX,0);
+  ctx.fillStyle="#ffffff";
+  ctx.shadowBlur=8;
+  ctx.shadowColor="#ffffff";
+
+  ctx.beginPath();
+  ctx.moveTo(-3,-31);
+  ctx.lineTo(2,-20);
+  ctx.lineTo(5,8);
+  ctx.lineTo(2,13);
+  ctx.lineTo(-1,5);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.restore();
+  ctx.globalAlpha=1;
+  ctx.shadowBlur=0;
+
+  /* escudo */
+  if(powerShield>0){
+    ctx.strokeStyle="#00eaff";
+    ctx.lineWidth=3;
+    ctx.shadowBlur=20;
+    ctx.shadowColor="#00eaff";
+    ctx.beginPath();
+    ctx.arc(0,0,43,0,Math.PI*2);
+    ctx.stroke();
+  }
+
+  /* dano / invulnerabilidade */
+  if(typeof hitCooldown!=="undefined" && hitCooldown>0){
+    ctx.globalAlpha=.45+.35*Math.sin(performance.now()*.03);
+  }
+
+  ctx.restore();
+}
+
+/* CELEBRAÇÃO FINAL */
+if(jogoCompletado){
+  let tempo=(performance.now()-celebracaoInicio)/1000;
+  let pulso=.5+.5*Math.sin(performance.now()*.006);
+
+  ctx.save();
+
+  /* brilho suave sobre o jogo */
+  ctx.fillStyle="rgba(0,0,0,.28)";
+  ctx.fillRect(0,0,W,H);
+
+  /* partículas de celebração */
+  for(let i=0;i<45;i++){
+    let x=(i*83+tempo*35)%W;
+    let y=(i*47+tempo*55)%(H+80)-40;
+    let r=2+(i%4);
+    ctx.globalAlpha=.45+.35*Math.sin(tempo*4+i);
+    ctx.fillStyle=i%3===0?"#ffd84a":i%3===1?"#42d8ff":"#ff5cf4";
+    ctx.shadowBlur=12;
+    ctx.shadowColor=ctx.fillStyle;
+    ctx.beginPath();
+    ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fill();
+  }
+
+  ctx.globalAlpha=1;
+  ctx.textAlign="center";
+
+  /* título */
+  ctx.shadowBlur=30;
+  ctx.shadowColor="#ffd84a";
+  ctx.fillStyle="#ffd84a";
+  ctx.font="bold 32px Arial";
+  ctx.fillText("🏆 NEXUS COMPLETADO 🏆",W/2,H*.36);
+
+  /* mensagem */
+  ctx.shadowBlur=15;
+  ctx.shadowColor="#42d8ff";
+  ctx.fillStyle="#ffffff";
+  ctx.font="bold 20px Arial";
+  ctx.fillText("PARABÉNS! VOCÊ DERROTOU O BOSS FINAL!",W/2,H*.45);
+
+  ctx.font="bold 18px Arial";
+  ctx.fillStyle="#42d8ff";
+  ctx.fillText("🌌 10 MUNDOS • 50 FASES CONCLUÍDAS 🌌",W/2,H*.51);
+
+  ctx.fillStyle="#ffd84a";
+  ctx.fillText("🏆 Pontuação: "+score+"   💰 Moedas: "+runCoins,W/2,H*.58);
+
+  ctx.fillStyle="#ffffff";
+  ctx.font="16px Arial";
+  ctx.fillText("🚀 Nova jornada começando...",W/2,H*.67);
+
+  ctx.restore();
+}
+
+ctx.restore();
+}
+
+function loop(t){
+if(!running||paused)return;
+let dt=Math.min(40,t-last);last=t;
+update(dt);draw();
+requestAnimationFrame(loop);
+}
+
+addEventListener("keydown",e=>{
+keys[e.key]=true;
+
+if(e.key==="Escape")togglePause();
+
+});
+addEventListener("keyup",e=>keys[e.key]=false);
+
+let touching=false;
+
+canvas.addEventListener("touchstart",e=>{
+  touching=true;
+  touchX=e.touches[0].clientX;
+  touchY=e.touches[0].clientY;
+  e.preventDefault();
+},{passive:false});
+
+canvas.addEventListener("touchmove",e=>{
+  if(touching){
+    touchX=e.touches[0].clientX;
+    touchY=e.touches[0].clientY;
+  }
+  e.preventDefault();
+},{passive:false});
+
+canvas.addEventListener("touchend",e=>{
+  touching=false;
+  touchX=null;
+  touchY=null;
+},{passive:false});
+
+canvas.addEventListener("pointerdown",e=>{
+  touching=true;
+  touchX=e.clientX;
+  touchY=e.clientY;
+});
+
+canvas.addEventListener("pointermove",e=>{
+  if(touching){
+    touchX=e.clientX;
+    touchY=e.clientY;
+  }
+});
+
+canvas.addEventListener("pointerup",()=>{
+  touching=false;
+  touchX=null;
+  touchY=null;
+});
+
+setInterval(save,5000);
+</script>
+
+</body>
+</html>
