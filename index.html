@@ -240,6 +240,7 @@ padding:3px 8px;
 <div id="hud" class="hidden">
 <div class="badge">🌌 <span id="world">1</span>-<span id="level">1</span></div>
 <div class="badge">⭐ <span id="score">0</span></div>
+<div class="badge" id="comboHud">🔥 COMBO x0</div>
 <div class="badge">💰 <span id="coins">0</span></div>
 <div class="badge">❤️ <span id="lives">3</span></div>
 <div class="badge" style="min-width:130px">
@@ -465,6 +466,12 @@ let last=0,spawnTimer=0,shotTimer=0,boss=null,hitCooldown=0;
 let keys={},touchX=null,touchY=null;
 let powerRapid=0,powerShield=0,powerTriple=0,invulnerable=0;
 let shake=0;
+
+// V64 - Sistema de Combo
+let combo=0;
+let comboTimer=0;
+const COMBO_TEMPO=3000;
+let melhorCombo=0;
 
 function atualizarIntegridade(){
   let porcentagem=Math.max(0,Math.min(100,(integridade/integridadeMax)*100));
@@ -692,77 +699,133 @@ hideAll();
 document.getElementById("info").classList.remove("hidden");
 document.getElementById("infoTitle").textContent="🛒 LOJA";
 
-let t=`<div>💰 Suas moedas: <b>${data.coins}</b></div>
-<div class="small" style="margin:8px 0 12px">
-Compre naves, armas e melhorias permanentes.
+let t=`
+<div style="font-size:11px;margin-bottom:4px">
+🪙 <b>${data.coins}</b> moedas
 </div>
+
 <div class="shop-grid">`;
 
-ships.forEach((s,i)=>{
-t+=`<div class="shop-card">
-🚀 ${s.name}<br>
-❤️ ${s.hp} • ⚡ ${s.speed}<br>
-<button class="btn shop-btn" onclick="buyShip(${i})">
-${data.ship===i?"EQUIPADO":i===0?"GRÁTIS":"💰 "+s.price}
+ships.forEach((sh,i)=>{
+t+=`
+<div class="shop-card">
+🚀 <b>${sh.name}</b><br>
+<span>❤️${sh.hp} ⚡${sh.speed}</span><br>
+<button class="shop-btn" onclick="buyShip(${i})">
+${data.ship===i?"EQUIPADO":i===0?"GRÁTIS":"💰 "+sh.price}
 </button>
 </div>`;
 });
 
 weapons.forEach((w,i)=>{
-t+=`<div class="shop-card">
-🔫 ${w.name}<br>
-💥 Dano ${w.damage}<br>
-<button class="btn shop-btn" onclick="buyWeapon(${i})">
-${data.weapon===i?"EQUIPADO":i===0?"GRÁTIS":"💰 "+w.price}
+t+=`
+<div class="shop-card">
+🔫 <b>${w.name}</b><br>
+<span>💥${w.damage} ⏱️${w.rate}</span><br>
+<button class="shop-btn" onclick="buyWeapon(${i})">
+${data.weapon===i?"EQUIPADA":i===0?"GRÁTIS":"💰 "+w.price}
 </button>
 </div>`;
 });
 
 let up=data.upgrades;
-
 let custoDano=50+(up.damage*50);
 let custoVel=50+(up.speed*50);
 let custoEscudo=75+(up.shield*75);
 let custoVida=100+(up.hp*100);
 
-t+=`<div class="shop-card">
-🔧 <b>DANO</b><br>
-<span class="small">Nível ${up.damage} • +1 dano por nível</span><br>
-<button class="btn shop-btn" onclick="buyUpgrade('damage',${custoDano})">
-💰 ${custoDano}
-</button>
-</div>
+let melhorias=[
+["damage","🔧","DANO",up.damage,custoDano],
+["speed","⚡","VELOCIDADE",up.speed,custoVel],
+["shield","🛡️","ESCUDO",up.shield,custoEscudo],
+["hp","❤️","VIDA",up.hp,custoVida]
+];
 
+melhorias.forEach(m=>{
+t+=`
 <div class="shop-card">
-⚡ <b>VELOCIDADE</b><br>
-<span class="small">Nível ${up.speed} • nave mais rápida</span><br>
-<button class="btn shop-btn" onclick="buyUpgrade('speed',${custoVel})">
-💰 ${custoVel}
+${m[1]} <b>${m[2]}</b><br>
+<span>Nível ${m[3]}</span><br>
+<button class="shop-btn" onclick="buyUpgrade('${m[0]}',${m[4]})">
+💰 ${m[4]}
+</button>
+</div>`;
+});
+
+t+=`
+</div>
+
+
+
+<div id="shopScrollBtns" style="
+position:absolute;
+right:2px;
+top:50%;
+transform:translateY(-50%);
+z-index:9999;
+display:flex;
+flex-direction:column;
+gap:4px;
+">
+<button onclick="document.getElementById('infoBody').scrollBy({top:-220,behavior:'smooth'})"
+style="width:28px;height:28px;padding:0;font-size:14px;border:1px solid #08eaff;border-radius:6px;background:#061a2f;color:#fff">
+▲
+</button>
+<button onclick="document.getElementById('infoBody').scrollBy({top:220,behavior:'smooth'})"
+style="width:28px;height:28px;padding:0;font-size:14px;border:1px solid #08eaff;border-radius:6px;background:#061a2f;color:#fff">
+▼
 </button>
 </div>
+`;
 
-<div class="shop-card">
-🛡️ <b>ESCUDO</b><br>
-<span class="small">Nível ${up.shield} • proteção permanente</span><br>
-<button class="btn shop-btn" onclick="buyUpgrade('shield',${custoEscudo})">
-💰 ${custoEscudo}
-</button>
-</div>
-
-<div class="shop-card">
-❤️ <b>VIDA</b><br>
-<span class="small">Nível ${up.hp} • +1 vida máxima</span><br>
-<button class="btn shop-btn" onclick="buyUpgrade('hp',${custoVida})">
-💰 ${custoVida}
-</button>
-</div>
-</div>
-
-<button class="btn shop-back" onclick="closeInfo()">
-⬅️ VOLTAR AO MENU
-</button>`;
-
+document.getElementById("infoBody").style.position="relative";
 document.getElementById("infoBody").innerHTML=t;
+}
+
+function buyShip(i){
+if(data.ship===i){
+return toast("🚀 Nave já equipada!");
+}
+
+if(i===0){
+data.ship=0;
+save();
+showShop();
+return toast("🚀 Fighter equipada!");
+}
+
+if(data.coins<ships[i].price){
+return toast("💰 Moedas insuficientes!");
+}
+
+data.coins-=ships[i].price;
+data.ship=i;
+save();
+showShop();
+toast("🚀 "+ships[i].name+" equipada!");
+}
+
+function buyWeapon(i){
+if(data.weapon===i){
+return toast("🔫 Arma já equipada!");
+}
+
+if(i===0){
+data.weapon=0;
+save();
+showShop();
+return toast("🔫 Laser equipado!");
+}
+
+if(data.coins<weapons[i].price){
+return toast("💰 Moedas insuficientes!");
+}
+
+data.coins-=weapons[i].price;
+data.weapon=i;
+save();
+showShop();
+toast("🔫 "+weapons[i].name+" equipada!");
 }
 
 function buyUpgrade(tipo,custo){
@@ -843,16 +906,19 @@ if(level<3){
   else if(r<.42) type="fast";
   else type="basic";
 }else{
-  if(r<.18) type="tank";
-  else if(r<.38) type="fast";
-  else if(r<.52 && level>=10) type="shooter";
+  if(r<.12) type="tank";
+  else if(r<.24) type="fast";
+  else if(r<.34 && level>=10) type="shooter";
+  else if(r<.42 && level>=6) type="regenerator";
+  else if(r<.50 && level>=8) type="kamikaze";
+  else if(r<.58 && level>=10) type="support";
   else type="basic";
 }
 
 let difficulty=Math.floor(level/5);
 
 /* aceleração progressiva a partir do Mundo 5 */
-let acelMundo=Math.max(0,world-4)*.10;
+let acelMundo=Math.max(0,world-4)*.05;
 
 let e={
   type,
@@ -860,36 +926,60 @@ let e={
   y:-40,
   r:18,
   hp:1,
-  speed:1.0+Math.min(level*.045,1.8)+acelMundo,
+  speed:1.0+Math.min(level*.025,1.0)+acelMundo,
   phase:Math.random()*6
 };
 
 /* inimigo básico */
 if(type==="basic"){
   e.r=18;
-  e.hp=1+Math.floor(level/12);
-  e.speed=1.0+level*.045+acelMundo;
+  e.hp=3+Math.floor(level/6);
+  e.speed=1.0+level*.025+acelMundo;
 }
 
 /* inimigo rápido */
 if(type==="fast"){
   e.r=13;
-  e.hp=1+Math.floor(level/15);
-  e.speed=1.7+level*.055+acelMundo*1.10;
+  e.hp=3+Math.floor(level/8);
+  e.speed=1.55+level*.030+acelMundo*.80;
 }
 
 /* tanque */
 if(type==="tank"){
   e.r=28;
-  e.hp=4+world+Math.floor(level/4)+Math.floor(level/3)+Math.floor(level/5);
-  e.speed=.65+level*.018+acelMundo*.55;
+  e.hp=7+world+Math.floor(level/2)+Math.floor(level/3);
+  e.speed=.60+level*.010+acelMundo*.40;
 }
 
 /* atirador */
 if(type==="shooter"){
   e.r=20;
-  e.hp=2+Math.floor(world/2)+Math.floor(level/10);
-  e.speed=.9+level*.025+acelMundo*.85;
+  e.hp=3+Math.floor(world/2)+Math.floor(level/7);
+  e.speed=.80+level*.014+acelMundo*.60;
+}
+
+/* V65.1 — regenerador: resistência progressiva */
+if(type==="regenerator"){
+  e.r=22;
+  e.hp=9+world*2+Math.floor(level*.85);
+  e.speed=.72+level*.012+acelMundo*.50;
+  e.regenTimer=0;
+}
+
+/* V65.1 — kamikaze: resistência progressiva */
+if(type==="kamikaze"){
+  e.r=15;
+  e.hp=5+world+Math.floor(level*.55);
+  e.speed=1.25+level*.025+acelMundo*.80;
+  e.kamikazeBoost=1;
+}
+
+/* V65.1 — suporte: resistência progressiva */
+if(type==="support"){
+  e.r=21;
+  e.hp=8+world*2+Math.floor(level*.70);
+  e.speed=.68+level*.012+acelMundo*.45;
+  e.supportTimer=0;
 }
 
 e.max=e.hp;
@@ -940,10 +1030,12 @@ let flashY=player.y-25;
     type:"muzzle"
   });
 });
-let triple=powerTriple>0||data.weapon===2;
+let triple=powerTriple>0;
 if(triple){
 [-.22,0,.22].forEach(a=>bullets.push({x:player.x,y:player.y-25,vx:Math.sin(a)*7,vy:-Math.cos(a)*9,r:3,damage}));
-}else bullets.push({x:player.x,y:player.y-25,vx:0,vy:-10,r:3,damage});
+}else{
+[-.11,.11].forEach(a=>bullets.push({x:player.x,y:player.y-25,vx:Math.sin(a)*5,vy:-Math.cos(a)*10,r:3,damage}));
+}
 }
 
 function hitEnemy(e,dmg){
@@ -960,9 +1052,18 @@ particles.push({
 });
 
 burst(e.x,e.y,5);
-if(e.hp<=0){
+if(e.hp<=0 && !e.dead){
 e.dead=true;
-score+=e.type==="tank"?30:e.type==="fast"?15:20;
+
+// V64 - Combo
+combo++;
+comboTimer=COMBO_TEMPO;
+if(combo>melhorCombo) melhorCombo=combo;
+
+let pontosBase=e.type==="tank"?30:e.type==="fast"?15:20;
+let bonusCombo=Math.max(0,combo-1)*2;
+score+=pontosBase+bonusCombo;
+
 data.missions.kills++;
 if(Math.random()<.75)dropCoin(e.x,e.y);
 if(Math.random()<.22)dropPower(e.x,e.y);
@@ -1099,6 +1200,16 @@ if(novoMundo>world){
 }
 
 function update(dt){
+
+// V64 - expiração do combo
+if(combo>0){
+  comboTimer-=dt;
+  if(comboTimer<=0){
+    combo=0;
+    comboTimer=0;
+  }
+}
+
 stars.forEach(s=>{
   s.y+=s.v*dt/16;
   if(s.y>H){
@@ -1139,11 +1250,11 @@ shoot();
 spawnTimer-=dt;
 
 /* quantidade necessária aumenta lentamente */
-let faseAlvo=10+Math.min(level*3,45);
+let faseAlvo=12+Math.min(level*4,60);
 
 /* fases iniciais mais tranquilas */
-if(level<=2) faseAlvo=7+level*2;
-if(level>=10) faseAlvo=16+Math.min(level*3,50);
+if(level<=2) faseAlvo=8+level*2;
+if(level>=10) faseAlvo=22+Math.min(level*4,65);
 
 /* intervalo entre inimigos */
 let interval;
@@ -1189,6 +1300,59 @@ e.x+=Math.max(-1.15,Math.min(1.15,direcao*agressividade+curva))*dt;
 
 e.x=Math.max(e.r+5,Math.min(W-e.r-5,e.x));
 
+/* V65 — comportamentos especiais */
+if(e.type==="regenerator"){
+  e.regenTimer-=dt;
+
+  if(e.regenTimer<=0){
+    e.regenTimer=900;
+
+    for(let aliado of enemies){
+      if(aliado!==e && !aliado.dead){
+        let dist=Math.hypot(aliado.x-e.x,aliado.y-e.y);
+
+        if(dist<115 && aliado.hp<aliado.max){
+          aliado.hp=Math.min(aliado.max,aliado.hp+1);
+          burst(aliado.x,aliado.y,2);
+        }
+      }
+    }
+  }
+}
+
+if(e.type==="kamikaze"){
+  let dx=player.x-e.x;
+  let dy=player.y-e.y;
+  let dist=Math.max(1,Math.hypot(dx,dy));
+
+  let intensidade=1.8+Math.min(fase,50)*.025;
+
+  e.x+=(dx/dist)*intensidade*dt/16;
+  e.y+=(dy/dist)*intensidade*dt/16;
+
+  e.kamikazeBoost=Math.min(2.8,e.kamikazeBoost+.002*dt);
+
+  e.x=Math.max(e.r+5,Math.min(W-e.r-5,e.x));
+}
+
+if(e.type==="support"){
+  e.supportTimer-=dt;
+
+  if(e.supportTimer<=0){
+    e.supportTimer=1200;
+
+    for(let aliado of enemies){
+      if(aliado!==e && !aliado.dead){
+        let dist=Math.hypot(aliado.x-e.x,aliado.y-e.y);
+
+        if(dist<125){
+          aliado.supportedUntil=performance.now()+1400;
+        }
+      }
+    }
+  }
+}
+
 /* disparos inimigos progressivos */
 let chanceTiro=Math.min(.007,.0009+fase*.00010);
 
@@ -1214,7 +1378,13 @@ type:e.type
 
 if(Math.hypot(e.x-player.x,e.y-player.y)<e.r+20){
 e.dead=true;
-damagePlayer();
+
+if(e.type==="kamikaze"){
+  damagePlayer(2);
+  burst(e.x,e.y,14);
+}else{
+  damagePlayer();
+}
 }
 });
 
@@ -1323,6 +1493,12 @@ powerTriple=Math.max(0,powerTriple-dt);
 document.getElementById("world").textContent=world;
 document.getElementById("level").textContent=level;
 document.getElementById("score").textContent=score;
+
+let comboHud=document.getElementById("comboHud");
+if(comboHud){
+  comboHud.textContent=combo>0 ? "🔥 COMBO x"+combo : "🔥 COMBO x0";
+}
+
 document.getElementById("coins").textContent=runCoins;
 document.getElementById("lives").textContent=lives;
 
@@ -1597,48 +1773,459 @@ if(world===6){
 }
 
 if(world===7){
+  /* PLANETA CONGELADO DO MUNDO 7 */
+  let t=performance.now()*.00010;
+  let px=W*.23+Math.sin(t)*12;
+  let py=H*.29+Math.cos(t*.7)*7;
+  let pr=Math.min(W,H)*.25;
+
+  ctx.save();
+
+  /* atmosfera gelada */
+  let atm=ctx.createRadialGradient(px,py,pr*.62,px,py,pr*1.45);
+  atm.addColorStop(0,"rgba(120,235,255,.20)");
+  atm.addColorStop(.58,"rgba(70,190,255,.11)");
+  atm.addColorStop(1,"rgba(0,0,0,0)");
+
+  ctx.fillStyle=atm;
+  ctx.beginPath();
+  ctx.arc(px,py,pr*1.45,0,Math.PI*2);
+  ctx.fill();
+
+  /* planeta */
+  let planeta=ctx.createRadialGradient(
+    px-pr*.38,py-pr*.42,pr*.08,
+    px,py,pr
+  );
+
+  planeta.addColorStop(0,"#e8fbff");
+  planeta.addColorStop(.32,"#8eeaff");
+  planeta.addColorStop(.62,"#3c9fc8");
+  planeta.addColorStop(.84,"#145579");
+  planeta.addColorStop(1,"#031827");
+
+  ctx.fillStyle=planeta;
+  ctx.shadowBlur=40;
+  ctx.shadowColor="#63dcff";
+
+  ctx.beginPath();
+  ctx.arc(px,py,pr,0,Math.PI*2);
+  ctx.fill();
+
+  /* regiões de gelo */
+  ctx.shadowBlur=0;
+  ctx.fillStyle="rgba(235,255,255,.62)";
+
+  for(let i=0;i<6;i++){
+    let a=i*1.9+t*.22;
+    let x=px+Math.cos(a)*pr*.43;
+    let y=py+Math.sin(a)*pr*.36;
+
+    ctx.beginPath();
+    ctx.ellipse(
+      x,y,
+      pr*(.10+(i%2)*.045),
+      pr*(.045+(i%3)*.018),
+      a,
+      0,Math.PI*2
+    );
+    ctx.fill();
+  }
+
+  /* faixas de gelo */
+  ctx.strokeStyle="rgba(190,248,255,.34)";
+  ctx.lineWidth=3;
+
+  for(let i=0;i<4;i++){
+    ctx.beginPath();
+    ctx.arc(
+      px,py,
+      pr*(.40+i*.12),
+      -.7+i*.32,
+      .85+i*.32
+    );
+    ctx.stroke();
+  }
+
+  /* lua congelada */
+  let mx=px+pr*1.30;
+  let my=py-pr*.76;
+  let mr=pr*.17;
+
+  ctx.fillStyle="#d9f7ff";
+  ctx.shadowBlur=18;
+  ctx.shadowColor="#9eeaff";
+
+  ctx.beginPath();
+  ctx.arc(mx,my,mr,0,Math.PI*2);
+  ctx.fill();
+
+  /* crateras da lua */
+  ctx.shadowBlur=0;
+  ctx.fillStyle="rgba(90,135,155,.42)";
+
+  for(let i=0;i<5;i++){
+    let a=i*2.15;
+    let cx=mx+Math.cos(a)*mr*.43;
+    let cy=my+Math.sin(a)*mr*.43;
+
+    ctx.beginPath();
+    ctx.arc(cx,cy,mr*(.10+(i%2)*.04),0,Math.PI*2);
+    ctx.fill();
+  }
+
+  /* sombra do planeta */
+  let sombra=ctx.createRadialGradient(
+    px-pr*.30,py-pr*.25,pr*.15,
+    px+pr*.50,py+pr*.35,pr*1.05
+  );
+
+  sombra.addColorStop(0,"rgba(0,0,0,0)");
+  sombra.addColorStop(.62,"rgba(0,0,0,.14)");
+  sombra.addColorStop(1,"rgba(0,0,0,.72)");
+
+  ctx.fillStyle=sombra;
+  ctx.beginPath();
+  ctx.arc(px,py,pr,0,Math.PI*2);
+  ctx.fill();
+
   /* região congelada */
   ctx.fillStyle="#6ee7ff";
   ctx.globalAlpha=.13;
+
   for(let i=0;i<10;i++){
     let x=(i*91+40)%W;
     let y=(i*157)%H;
+
     ctx.beginPath();
     ctx.arc(x,y,25+(i%4)*8,0,Math.PI*2);
     ctx.fill();
   }
+
   ctx.globalAlpha=1;
+  ctx.restore();
 }
 
 if(world===8){
+  /* PLANETA GIGANTE GASOSO DO MUNDO 8 */
+  let t=performance.now()*.00009;
+  let px=W*.24+Math.sin(t)*14;
+  let py=H*.31+Math.cos(t*.65)*8;
+  let pr=Math.min(W,H)*.27;
+
+  ctx.save();
+
+  /* atmosfera quente */
+  let atm=ctx.createRadialGradient(px,py,pr*.60,px,py,pr*1.48);
+  atm.addColorStop(0,"rgba(255,190,80,.22)");
+  atm.addColorStop(.58,"rgba(255,105,35,.11)");
+  atm.addColorStop(1,"rgba(0,0,0,0)");
+
+  ctx.fillStyle=atm;
+  ctx.beginPath();
+  ctx.arc(px,py,pr*1.48,0,Math.PI*2);
+  ctx.fill();
+
+  /* planeta gasoso */
+  let planeta=ctx.createRadialGradient(
+    px-pr*.38,py-pr*.44,pr*.08,
+    px,py,pr
+  );
+
+  planeta.addColorStop(0,"#ffe0a0");
+  planeta.addColorStop(.28,"#e99a42");
+  planeta.addColorStop(.52,"#b95725");
+  planeta.addColorStop(.75,"#672414");
+  planeta.addColorStop(1,"#16080a");
+
+  ctx.fillStyle=planeta;
+  ctx.shadowBlur=42;
+  ctx.shadowColor="#ff8b32";
+
+  ctx.beginPath();
+  ctx.arc(px,py,pr,0,Math.PI*2);
+  ctx.fill();
+
+  /* faixas atmosféricas */
+  ctx.shadowBlur=0;
+  ctx.strokeStyle="rgba(255,220,145,.30)";
+  ctx.lineWidth=5;
+
+  for(let i=0;i<7;i++){
+    ctx.beginPath();
+    ctx.arc(
+      px,py,
+      pr*(.34+i*.075),
+      -.95+i*.20,
+      .82+i*.20
+    );
+    ctx.stroke();
+  }
+
+  /* tempestades do gigante */
+  ctx.fillStyle="rgba(255,205,120,.34)";
+
+  for(let i=0;i<4;i++){
+    let a=i*1.8+t*.28;
+    let x=px+Math.cos(a)*pr*.50;
+    let y=py+Math.sin(a)*pr*.30;
+
+    ctx.beginPath();
+    ctx.ellipse(
+      x,y,
+      pr*(.12+(i%2)*.04),
+      pr*.035,
+      a*.4,
+      0,Math.PI*2
+    );
+    ctx.fill();
+  }
+
+  /* anéis externos */
+  ctx.save();
+  ctx.translate(px,py);
+  ctx.rotate(-.20);
+
+  ctx.strokeStyle="rgba(255,220,150,.34)";
+  ctx.lineWidth=12;
+  ctx.beginPath();
+  ctx.ellipse(0,0,pr*1.55,pr*.34,0,0,Math.PI*2);
+  ctx.stroke();
+
+  ctx.strokeStyle="rgba(255,165,65,.24)";
+  ctx.lineWidth=5;
+  ctx.beginPath();
+  ctx.ellipse(0,0,pr*1.72,pr*.40,0,0,Math.PI*2);
+  ctx.stroke();
+
+  ctx.strokeStyle="rgba(255,235,180,.18)";
+  ctx.lineWidth=3;
+  ctx.beginPath();
+  ctx.ellipse(0,0,pr*1.88,pr*.46,0,0,Math.PI*2);
+  ctx.stroke();
+
+  ctx.restore();
+
+  /* lua vulcânica */
+  let mx=px+pr*1.45;
+  let my=py-pr*.86;
+  let mr=pr*.14;
+
+  ctx.fillStyle="#d58a55";
+  ctx.shadowBlur=16;
+  ctx.shadowColor="#ff9b4d";
+
+  ctx.beginPath();
+  ctx.arc(mx,my,mr,0,Math.PI*2);
+  ctx.fill();
+
+  /* crateras */
+  ctx.shadowBlur=0;
+  ctx.fillStyle="rgba(75,30,20,.48)";
+
+  for(let i=0;i<5;i++){
+    let a=i*2.2;
+    let cx=mx+Math.cos(a)*mr*.43;
+    let cy=my+Math.sin(a)*mr*.43;
+
+    ctx.beginPath();
+    ctx.arc(cx,cy,mr*(.09+(i%2)*.035),0,Math.PI*2);
+    ctx.fill();
+  }
+
+  /* sombra */
+  let sombra=ctx.createRadialGradient(
+    px-pr*.30,py-pr*.25,pr*.15,
+    px+pr*.52,py+pr*.38,pr*1.08
+  );
+
+  sombra.addColorStop(0,"rgba(0,0,0,0)");
+  sombra.addColorStop(.62,"rgba(0,0,0,.14)");
+  sombra.addColorStop(1,"rgba(0,0,0,.74)");
+
+  ctx.fillStyle=sombra;
+  ctx.beginPath();
+  ctx.arc(px,py,pr,0,Math.PI*2);
+  ctx.fill();
+
   /* tempestade cósmica */
   ctx.strokeStyle="#ff9e42";
   ctx.globalAlpha=.20;
   ctx.lineWidth=2;
+
   for(let i=0;i<6;i++){
     ctx.beginPath();
     ctx.moveTo(0,i*100+20);
     ctx.quadraticCurveTo(W*.5,i*100-50,W,i*100+40);
     ctx.stroke();
   }
+
   ctx.globalAlpha=1;
+  ctx.restore();
 }
 
 if(world===9){
+  /* PLANETA ALIENÍGENA DO MUNDO 9 */
+  let t=performance.now()*.00011;
+  let px=W*.24+Math.sin(t)*13;
+  let py=H*.30+Math.cos(t*.72)*8;
+  let pr=Math.min(W,H)*.26;
+
+  ctx.save();
+
+  /* atmosfera alienígena */
+  let atm=ctx.createRadialGradient(px,py,pr*.58,px,py,pr*1.48);
+  atm.addColorStop(0,"rgba(70,255,190,.22)");
+  atm.addColorStop(.58,"rgba(35,210,160,.12)");
+  atm.addColorStop(1,"rgba(0,0,0,0)");
+
+  ctx.fillStyle=atm;
+  ctx.beginPath();
+  ctx.arc(px,py,pr*1.48,0,Math.PI*2);
+  ctx.fill();
+
+  /* planeta */
+  let planeta=ctx.createRadialGradient(
+    px-pr*.40,py-pr*.43,pr*.07,
+    px,py,pr
+  );
+
+  planeta.addColorStop(0,"#b9ffe5");
+  planeta.addColorStop(.28,"#36d6a0");
+  planeta.addColorStop(.55,"#13866f");
+  planeta.addColorStop(.78,"#075044");
+  planeta.addColorStop(1,"#011d22");
+
+  ctx.fillStyle=planeta;
+  ctx.shadowBlur=42;
+  ctx.shadowColor="#20f0b0";
+
+  ctx.beginPath();
+  ctx.arc(px,py,pr,0,Math.PI*2);
+  ctx.fill();
+
+  /* continentes alienígenas */
+  ctx.shadowBlur=0;
+  ctx.fillStyle="rgba(150,255,210,.32)";
+
+  for(let i=0;i<8;i++){
+    let a=i*1.55+t*.32;
+    let x=px+Math.cos(a)*pr*.48;
+    let y=py+Math.sin(a)*pr*.38;
+
+    ctx.beginPath();
+    ctx.ellipse(
+      x,y,
+      pr*(.10+(i%3)*.035),
+      pr*(.055+(i%2)*.025),
+      a,
+      0,Math.PI*2
+    );
+    ctx.fill();
+  }
+
+  /* linhas bioluminescentes */
+  ctx.strokeStyle="rgba(120,255,220,.42)";
+  ctx.lineWidth=3;
+
+  for(let i=0;i<5;i++){
+    ctx.beginPath();
+    ctx.arc(
+      px,py,
+      pr*(.38+i*.11),
+      -.85+i*.28,
+      .92+i*.28
+    );
+    ctx.stroke();
+  }
+
+  /* estruturas alienígenas brilhantes */
+  ctx.fillStyle="#8affdc";
+  ctx.shadowBlur=14;
+  ctx.shadowColor="#35ffbd";
+
+  for(let i=0;i<6;i++){
+    let a=i*1.9+t*.20;
+    let x=px+Math.cos(a)*pr*.55;
+    let y=py+Math.sin(a)*pr*.32;
+    let h=pr*(.07+(i%3)*.025);
+
+    ctx.beginPath();
+    ctx.moveTo(x,y);
+    ctx.lineTo(x-h*.35,y+h);
+    ctx.lineTo(x+h*.35,y+h);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  /* lua alienígena */
+  let mx=px+pr*1.38;
+  let my=py-pr*.78;
+  let mr=pr*.15;
+
+  ctx.fillStyle="#86d8c4";
+  ctx.shadowBlur=18;
+  ctx.shadowColor="#50ffc8";
+
+  ctx.beginPath();
+  ctx.arc(mx,my,mr,0,Math.PI*2);
+  ctx.fill();
+
+  /* crateras */
+  ctx.shadowBlur=0;
+  ctx.fillStyle="rgba(20,85,75,.42)";
+
+  for(let i=0;i<5;i++){
+    let a=i*2.15;
+    let cx=mx+Math.cos(a)*mr*.43;
+    let cy=my+Math.sin(a)*mr*.43;
+
+    ctx.beginPath();
+    ctx.arc(cx,cy,mr*(.09+(i%2)*.04),0,Math.PI*2);
+    ctx.fill();
+  }
+
+  /* sombra */
+  let sombra=ctx.createRadialGradient(
+    px-pr*.30,py-pr*.25,pr*.15,
+    px+pr*.52,py+pr*.38,pr*1.08
+  );
+
+  sombra.addColorStop(0,"rgba(0,0,0,0)");
+  sombra.addColorStop(.62,"rgba(0,0,0,.14)");
+  sombra.addColorStop(1,"rgba(0,0,0,.76)");
+
+  ctx.fillStyle=sombra;
+  ctx.beginPath();
+  ctx.arc(px,py,pr,0,Math.PI*2);
+  ctx.fill();
+
   /* região alienígena */
   ctx.fillStyle="#24e6a1";
   ctx.globalAlpha=.12;
+
   for(let i=0;i<9;i++){
     let x=(i*113)%W;
     let y=(i*71+80)%H;
+
     ctx.beginPath();
     ctx.arc(x,y,18+(i%3)*8,0,Math.PI*2);
     ctx.fill();
   }
+
   ctx.globalAlpha=1;
+  ctx.restore();
 }
 
 if(world===10){
+  /* PLANETA DO CENTRO GALÁCTICO - MUNDO 10 */
+  let t=performance.now()*.00010;
+  let px=W*.28+Math.sin(t)*10;
+  let py=H*.32+Math.cos(t*.65)*7;
+  let pr=Math.min(W,H)*.28;
+
+  ctx.save();
+
   /* centro da galáxia */
   let g=ctx.createRadialGradient(W/2,H*.35,10,W/2,H*.35,W*.75);
   g.addColorStop(0,"#d86cff");
@@ -1648,12 +2235,151 @@ if(world===10){
   ctx.fillStyle=g;
   ctx.fillRect(0,0,W,H);
 
-  ctx.strokeStyle="#ffb8ff";
-  ctx.globalAlpha=.18;
+  /* atmosfera energética */
+  let atm=ctx.createRadialGradient(px,py,pr*.55,px,py,pr*1.55);
+  atm.addColorStop(0,"rgba(220,120,255,.25)");
+  atm.addColorStop(.55,"rgba(130,50,220,.13)");
+  atm.addColorStop(1,"rgba(0,0,0,0)");
+
+  ctx.fillStyle=atm;
   ctx.beginPath();
-  ctx.ellipse(W/2,H*.35,W*.55,H*.16,0,0,Math.PI*2);
+  ctx.arc(px,py,pr*1.55,0,Math.PI*2);
+  ctx.fill();
+
+  /* planeta */
+  let planeta=ctx.createRadialGradient(
+    px-pr*.42,py-pr*.45,pr*.06,
+    px,py,pr
+  );
+
+  planeta.addColorStop(0,"#f0c7ff");
+  planeta.addColorStop(.22,"#b45cff");
+  planeta.addColorStop(.48,"#7131b8");
+  planeta.addColorStop(.72,"#35186d");
+  planeta.addColorStop(1,"#10052d");
+
+  ctx.fillStyle=planeta;
+  ctx.shadowBlur=48;
+  ctx.shadowColor="#c15cff";
+
+  ctx.beginPath();
+  ctx.arc(px,py,pr,0,Math.PI*2);
+  ctx.fill();
+
+  /* regiões luminosas */
+  ctx.shadowBlur=0;
+  ctx.fillStyle="rgba(240,170,255,.22)";
+
+  for(let i=0;i<8;i++){
+    let a=i*1.62+t*.24;
+    let x=px+Math.cos(a)*pr*.48;
+    let y=py+Math.sin(a)*pr*.38;
+
+    ctx.beginPath();
+    ctx.ellipse(
+      x,y,
+      pr*(.10+(i%3)*.035),
+      pr*(.045+(i%2)*.025),
+      a,
+      0,Math.PI*2
+    );
+    ctx.fill();
+  }
+
+  /* linhas de energia */
+  ctx.strokeStyle="rgba(245,190,255,.55)";
+  ctx.lineWidth=3;
+  ctx.shadowBlur=10;
+  ctx.shadowColor="#e38cff";
+
+  for(let i=0;i<5;i++){
+    ctx.beginPath();
+    ctx.arc(
+      px,py,
+      pr*(.38+i*.11),
+      -.95+i*.30,
+      .88+i*.30
+    );
+    ctx.stroke();
+  }
+
+  /* anéis de energia */
+  ctx.shadowBlur=20;
+  ctx.strokeStyle="rgba(255,190,255,.72)";
+  ctx.lineWidth=5;
+
+  ctx.beginPath();
+  ctx.ellipse(px,py,pr*1.38,pr*.38,t*.35,0,Math.PI*2);
   ctx.stroke();
+
+  ctx.globalAlpha=.42;
+  ctx.lineWidth=2;
+
+  ctx.beginPath();
+  ctx.ellipse(px,py,pr*1.58,pr*.47,t*.35,0,Math.PI*2);
+  ctx.stroke();
+
   ctx.globalAlpha=1;
+
+  /* lua galáctica */
+  let mx=px+pr*1.35;
+  let my=py-pr*.82;
+  let mr=pr*.14;
+
+  ctx.fillStyle="#c9a7df";
+  ctx.shadowBlur=18;
+  ctx.shadowColor="#c58cff";
+
+  ctx.beginPath();
+  ctx.arc(mx,my,mr,0,Math.PI*2);
+  ctx.fill();
+
+  /* crateras da lua */
+  ctx.shadowBlur=0;
+  ctx.fillStyle="rgba(55,25,80,.42)";
+
+  for(let i=0;i<5;i++){
+    let a=i*2.18;
+    let cx=mx+Math.cos(a)*mr*.43;
+    let cy=my+Math.sin(a)*mr*.43;
+
+    ctx.beginPath();
+    ctx.arc(cx,cy,mr*(.09+(i%2)*.04),0,Math.PI*2);
+    ctx.fill();
+  }
+
+  /* sombra do planeta */
+  let sombra=ctx.createRadialGradient(
+    px-pr*.28,py-pr*.25,pr*.12,
+    px+pr*.55,py+pr*.40,pr*1.08
+  );
+
+  sombra.addColorStop(0,"rgba(0,0,0,0)");
+  sombra.addColorStop(.60,"rgba(0,0,0,.12)");
+  sombra.addColorStop(1,"rgba(0,0,0,.80)");
+
+  ctx.fillStyle=sombra;
+  ctx.beginPath();
+  ctx.arc(px,py,pr,0,Math.PI*2);
+  ctx.fill();
+
+  /* partículas do centro galáctico */
+  ctx.fillStyle="#f0b8ff";
+  ctx.globalAlpha=.30;
+
+  for(let i=0;i<12;i++){
+    let a=i*1.73+t*.18;
+    let r=W*(.18+(i%4)*.07);
+    let x=W/2+Math.cos(a)*r;
+    let y=H*.35+Math.sin(a)*r*.38;
+
+    ctx.beginPath();
+    ctx.arc(x,y,1.5+(i%3),0,Math.PI*2);
+    ctx.fill();
+  }
+
+  ctx.globalAlpha=1;
+  ctx.restore();
 }
 
 }
@@ -1748,6 +2474,9 @@ for(let e of enemies){
     e.type==="tank" ? "#7c45c9" :
     e.type==="fast" ? "#dcae32" :
     e.type==="shooter" ? "#c94d57" :
+    e.type==="regenerator" ? "#35d06f" :
+    e.type==="kamikaze" ? "#ff7a24" :
+    e.type==="support" ? "#35a7ff" :
     "#a93642";
 
   ctx.shadowBlur=12;
@@ -1826,6 +2555,93 @@ for(let e of enemies){
     ctx.globalAlpha=1;
     ctx.shadowBlur=12;
   }
+
+  /* V65 — efeitos especiais */
+  if(e.type==="regenerator"){
+    let pulse=.55+Math.sin(performance.now()*.006+e.phase)*.45;
+
+    ctx.globalAlpha=pulse;
+    ctx.strokeStyle="#6dff9a";
+    ctx.lineWidth=3;
+    ctx.shadowBlur=18;
+    ctx.shadowColor="#35d06f";
+
+    ctx.beginPath();
+    ctx.arc(0,0,e.r*.95,0,Math.PI*2);
+    ctx.stroke();
+
+    ctx.globalAlpha=1;
+    ctx.fillStyle="#b5ffcb";
+    ctx.shadowBlur=18;
+    ctx.shadowColor="#35d06f";
+
+    ctx.beginPath();
+    ctx.arc(0,0,e.r*.20,0,Math.PI*2);
+    ctx.fill();
+  }
+
+  if(e.type==="kamikaze"){
+    let pulse=.65+Math.sin(performance.now()*.012+e.phase)*.35;
+
+    ctx.globalAlpha=pulse;
+    ctx.strokeStyle="#ffbf5c";
+    ctx.lineWidth=3;
+    ctx.shadowBlur=20;
+    ctx.shadowColor="#ff5a20";
+
+    ctx.beginPath();
+    ctx.arc(0,0,e.r*.90,0,Math.PI*2);
+    ctx.stroke();
+
+    ctx.globalAlpha=1;
+    ctx.fillStyle="#fff0b0";
+    ctx.shadowBlur=20;
+    ctx.shadowColor="#ff7a24";
+
+    ctx.beginPath();
+    ctx.arc(0,0,e.r*.22,0,Math.PI*2);
+    ctx.fill();
+  }
+
+  if(e.type==="support"){
+    let pulse=.65+Math.sin(performance.now()*.005+e.phase)*.35;
+
+    ctx.globalAlpha=pulse;
+    ctx.strokeStyle="#8bd4ff";
+    ctx.lineWidth=3;
+    ctx.shadowBlur=18;
+    ctx.shadowColor="#35a7ff";
+
+    ctx.beginPath();
+    ctx.arc(0,0,e.r*1.05,0,Math.PI*2);
+    ctx.stroke();
+
+    ctx.globalAlpha=1;
+    ctx.fillStyle="#d9f3ff";
+    ctx.shadowBlur=18;
+    ctx.shadowColor="#35a7ff";
+
+    ctx.beginPath();
+    ctx.arc(0,0,e.r*.20,0,Math.PI*2);
+    ctx.fill();
+  }
+
+  /* aura de inimigo fortalecido pelo suporte */
+  if(e.supportedUntil && e.supportedUntil>performance.now()){
+    ctx.globalAlpha=.55;
+    ctx.strokeStyle="#8bd4ff";
+    ctx.lineWidth=2;
+    ctx.shadowBlur=12;
+    ctx.shadowColor="#35a7ff";
+
+    ctx.beginPath();
+    ctx.arc(0,0,e.r*1.18,0,Math.PI*2);
+    ctx.stroke();
+
+    ctx.globalAlpha=1;
+  }
+
+  ctx.shadowBlur=0;
 
   /* casco central */
   ctx.fillStyle="#273449";
@@ -2013,6 +2829,260 @@ for(let e of enemies){
     ctx.fillRect(-e.r,-e.r-9,e.r*2,4);
     ctx.fillStyle="#43e07a";
     ctx.fillRect(-e.r,-e.r-9,e.r*2*Math.max(0,e.hp/e.max),4);
+  }
+
+  /* =========================================================
+     V65 — DESIGN FUTURISTA DOS NOVOS INIMIGOS
+     ========================================================= */
+
+  /* 🧬 REGENERADOR — nave biotecnológica */
+  if(e.type==="regenerator"){
+    let t=performance.now();
+    let pulse=.65+Math.sin(t*.006+e.phase)*.35;
+    let rot=t*.0012;
+
+    ctx.save();
+    ctx.rotate(rot);
+
+    /* anéis de energia */
+    ctx.globalAlpha=.45*pulse;
+    ctx.strokeStyle="#5cff91";
+    ctx.lineWidth=2;
+    ctx.shadowBlur=18;
+    ctx.shadowColor="#35ff78";
+
+    ctx.beginPath();
+    ctx.arc(0,0,e.r*1.28,0,Math.PI*1.55);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(0,0,e.r*1.28,Math.PI,Math.PI*2.55);
+    ctx.stroke();
+
+    ctx.globalAlpha=1;
+
+    /* núcleo biotecnológico */
+    let bio=ctx.createRadialGradient(0,0,1,0,0,e.r*.42);
+    bio.addColorStop(0,"#effff5");
+    bio.addColorStop(.25,"#8affb1");
+    bio.addColorStop(.65,"#20d965");
+    bio.addColorStop(1,"#087a39");
+
+    ctx.fillStyle=bio;
+    ctx.shadowBlur=24;
+    ctx.shadowColor="#35ff78";
+
+    ctx.beginPath();
+    ctx.arc(0,0,e.r*.38,0,Math.PI*2);
+    ctx.fill();
+
+    /* três módulos de energia */
+    ctx.fillStyle="#baffcc";
+    ctx.shadowBlur=12;
+
+    for(let i=0;i<3;i++){
+      let a=rot*2+i*Math.PI*2/3;
+      let x=Math.cos(a)*e.r*.72;
+      let y=Math.sin(a)*e.r*.72;
+
+      ctx.beginPath();
+      ctx.arc(x,y,e.r*.09,0,Math.PI*2);
+      ctx.fill();
+    }
+
+    ctx.restore();
+
+    /* partículas de regeneração */
+    ctx.globalAlpha=.55*pulse;
+    ctx.fillStyle="#8affb1";
+    ctx.shadowBlur=10;
+    ctx.shadowColor="#35ff78";
+
+    for(let i=0;i<4;i++){
+      let a=t*.002+i*Math.PI/2+e.phase;
+      let rr=e.r*(.8+.18*Math.sin(t*.004+i));
+      ctx.beginPath();
+      ctx.arc(Math.cos(a)*rr,Math.sin(a)*rr,e.r*.045,0,Math.PI*2);
+      ctx.fill();
+    }
+
+    ctx.globalAlpha=1;
+    ctx.shadowBlur=0;
+  }
+
+  /* 💥 KAMIKAZE — nave de ataque */
+  if(e.type==="kamikaze"){
+    let t=performance.now();
+    let pulse=.55+Math.sin(t*.014+e.phase)*.45;
+
+    /* aura de alerta */
+    ctx.globalAlpha=.35+.35*pulse;
+    ctx.strokeStyle="#ffb13b";
+    ctx.lineWidth=3;
+    ctx.shadowBlur=22;
+    ctx.shadowColor="#ff4d00";
+
+    ctx.beginPath();
+    ctx.arc(0,0,e.r*1.25,0,Math.PI*2);
+    ctx.stroke();
+
+    ctx.globalAlpha=1;
+
+    /* asas agressivas */
+    let attack=ctx.createLinearGradient(-e.r,0,e.r,0);
+    attack.addColorStop(0,"#6b1010");
+    attack.addColorStop(.45,"#ff5524");
+    attack.addColorStop(.70,"#ff9d32");
+    attack.addColorStop(1,"#6b1010");
+
+    ctx.fillStyle=attack;
+    ctx.shadowBlur=16;
+    ctx.shadowColor="#ff4d00";
+
+    ctx.beginPath();
+    ctx.moveTo(0,-e.r*1.05);
+    ctx.lineTo(e.r*.92,e.r*.55);
+    ctx.lineTo(e.r*.20,e.r*.28);
+    ctx.lineTo(0,e.r*.78);
+    ctx.lineTo(-e.r*.20,e.r*.28);
+    ctx.lineTo(-e.r*.92,e.r*.55);
+    ctx.closePath();
+    ctx.fill();
+
+    /* núcleo explosivo */
+    let core=ctx.createRadialGradient(0,0,1,0,0,e.r*.38);
+    core.addColorStop(0,"#ffffff");
+    core.addColorStop(.20,"#fff1a8");
+    core.addColorStop(.50,"#ff7a00");
+    core.addColorStop(1,"#a91f00");
+
+    ctx.fillStyle=core;
+    ctx.shadowBlur=28;
+    ctx.shadowColor="#ff5a00";
+
+    ctx.beginPath();
+    ctx.arc(0,0,e.r*.34,0,Math.PI*2);
+    ctx.fill();
+
+    /* marca de alerta */
+    ctx.globalAlpha=.75+.25*pulse;
+    ctx.strokeStyle="#fff0a0";
+    ctx.lineWidth=2;
+
+    ctx.beginPath();
+    ctx.moveTo(-e.r*.18,-e.r*.62);
+    ctx.lineTo(0,-e.r*.38);
+    ctx.lineTo(e.r*.18,-e.r*.62);
+    ctx.stroke();
+
+    ctx.globalAlpha=1;
+    ctx.shadowBlur=0;
+  }
+
+  /* 🛡️ SUPORTE — nave de comando */
+  if(e.type==="support"){
+    let t=performance.now();
+    let pulse=.65+Math.sin(t*.005+e.phase)*.35;
+    let rot=t*.0008;
+
+    /* escudo externo */
+    ctx.save();
+    ctx.rotate(rot);
+
+    ctx.globalAlpha=.30+.30*pulse;
+    ctx.strokeStyle="#62c9ff";
+    ctx.lineWidth=3;
+    ctx.shadowBlur=24;
+    ctx.shadowColor="#008cff";
+
+    ctx.beginPath();
+    for(let i=0;i<6;i++){
+      let a=-Math.PI/2+i*Math.PI/3;
+      let x=Math.cos(a)*e.r*1.30;
+      let y=Math.sin(a)*e.r*1.30;
+
+      if(i===0)ctx.moveTo(x,y);
+      else ctx.lineTo(x,y);
+    }
+    ctx.closePath();
+    ctx.stroke();
+
+    ctx.globalAlpha=1;
+
+    /* braços tecnológicos */
+    ctx.strokeStyle="#8edcff";
+    ctx.lineWidth=3;
+    ctx.shadowBlur=12;
+
+    ctx.beginPath();
+    ctx.moveTo(-e.r*.25,0);
+    ctx.lineTo(-e.r*1.0,e.r*.45);
+    ctx.moveTo(e.r*.25,0);
+    ctx.lineTo(e.r*1.0,e.r*.45);
+    ctx.stroke();
+
+    ctx.restore();
+
+    /* núcleo de comando */
+    let command=ctx.createRadialGradient(0,0,1,0,0,e.r*.40);
+    command.addColorStop(0,"#ffffff");
+    command.addColorStop(.25,"#bcecff");
+    command.addColorStop(.55,"#36b9ff");
+    command.addColorStop(1,"#07559b");
+
+    ctx.fillStyle=command;
+    ctx.shadowBlur=26;
+    ctx.shadowColor="#00aaff";
+
+    ctx.beginPath();
+    ctx.arc(0,0,e.r*.36,0,Math.PI*2);
+    ctx.fill();
+
+    /* quatro pontos de comando */
+    ctx.fillStyle="#d9f7ff";
+    ctx.shadowBlur=10;
+
+    for(let i=0;i<4;i++){
+      let a=t*.002+i*Math.PI/2;
+      ctx.beginPath();
+      ctx.arc(
+        Math.cos(a)*e.r*.68,
+        Math.sin(a)*e.r*.68,
+        e.r*.065,
+        0,
+        Math.PI*2
+      );
+      ctx.fill();
+    }
+
+    /* indicação de campo de suporte ativo */
+    let suporteAtivo=false;
+
+    for(let aliado of enemies){
+      if(aliado!==e && !aliado.dead){
+        let dist=Math.hypot(aliado.x-e.x,aliado.y-e.y);
+        if(dist<125){
+          suporteAtivo=true;
+          break;
+        }
+      }
+    }
+
+    if(suporteAtivo){
+      ctx.globalAlpha=.65+.25*pulse;
+      ctx.strokeStyle="#bcecff";
+      ctx.lineWidth=2;
+      ctx.shadowBlur=16;
+      ctx.shadowColor="#35a7ff";
+
+      ctx.beginPath();
+      ctx.arc(0,0,e.r*1.48,0,Math.PI*2);
+      ctx.stroke();
+
+      ctx.globalAlpha=1;
+    }
+
+    ctx.shadowBlur=0;
   }
 
   ctx.restore();
